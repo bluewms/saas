@@ -1,0 +1,28 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* saas_cluster_simple
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0-20260926\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-18 04:00+0000\n"
+"PO-Revision-Date: 2026-11-18 04:00+0000\n"
+"Last-Translator: \n"
+"Language: zh_CN\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: saas_cluster_simple
+#. odoo-python
+#: code:addons/saas_cluster_simple/main.py:0
+msgid "Modules are not available on this operator: %s"
+msgstr "此操作员上不可用的模块：%s"
+
+#. module: saas_cluster_simple
+#: model:ir.module.module,shortdesc:base.module_saas_cluster_simple
+msgid "SaaS: Simple cluster"
+msgstr "SaaS：简单集群"

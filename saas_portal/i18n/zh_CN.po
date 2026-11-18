@@ -1,0 +1,275 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* saas_portal
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0-20260926\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-18 03:59+0000\n"
+"PO-Revision-Date: 2026-11-18 03:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_table_builds
+msgid "(Admin:"
+msgstr "(管理员："
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_build
+msgid "(Draft)"
+msgstr "(草稿)"
+
+#. module: saas_portal
+#: model:ir.module.module,description:base.module_saas_portal
+msgid ""
+".. image:: https://img.shields.io/badge/license-AGPL--3-blue.png\n"
+"   :target: https://www.gnu.org/licenses/agpl\n"
+"   :alt: License: AGPL-3\n"
+"\n"
+"==============\n"
+" SaaS: Portal\n"
+"==============\n"
+"\n"
+"Allows to customers see their Builds at Portal.\n"
+"\n"
+"Credits\n"
+"=======\n"
+"\n"
+"Contributors\n"
+"------------\n"
+"\n"
+"* `Eugene Molotov <https://github.com/em230418>`__:\n"
+"\n"
+"Sponsors\n"
+"--------\n"
+"\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Maintainers\n"
+"-----------\n"
+"\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Further information\n"
+"===================\n"
+"\n"
+"Known bugs\n"
+"----------\n"
+"\n"
+"* ``number_of_queue_jobs_to_be_done`` field always shows zero\n"
+"\n"
+"Usage instructions: `<doc/index.rst>`_\n"
+"\n"
+"Changelog: `<doc/changelog.rst>`_\n"
+msgstr ""
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_build
+msgid "<b>Expiration date</b>"
+msgstr "<b>到期日期</b>"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_build
+msgid "<b>Number of users</b>"
+msgstr "<b>用户数量</b>"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_build
+msgid "<b>Pending processes</b>"
+msgstr "<b>待处理任务</b>"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_build
+msgid "<small class=\"text-muted\">Build - </small>"
+msgstr "<small class=\"text-muted\">构建 - </small>"
+
+#. module: saas_portal
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db__access_warning
+msgid "Access warning"
+msgstr "访问警告"
+
+#. module: saas_portal
+#: model:ir.module.module,summary:base.module_saas_portal
+msgid "Allows to customers see their Builds at Portal"
+msgstr "允许客户在其门户中查看他们的构建"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_build
+msgid "Approved"
+msgstr "已批准"
+
+#. module: saas_portal
+#: model:ir.model,name:saas_portal.model_saas_db
+msgid "Build"
+msgstr "构建"
+
+#. module: saas_portal
+#: model:ir.model,name:saas_portal.model_saas_db_backup
+msgid "Build backup"
+msgstr "构建备份"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.ignore_is_approved_dialog
+msgid ""
+"Build owner has not approved this build. Are you sure, you want to set it as"
+" main?"
+msgstr "构建所有者尚未批准此构建。确定要将其设为主构建吗？"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_builds
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_home
+msgid "Builds"
+msgstr "构建"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.domain_change_notice_dialog
+msgid "Cancel"
+msgstr "取消"
+
+#. module: saas_portal
+#. odoo-python
+#: code:addons/saas_portal/models/saas_db.py:0
+msgid "Choose a ready restored build on the same operator as its predecessor."
+msgstr "请选择与前一构建在同一操作员上且已就绪的恢复构建。"
+
+#. module: saas_portal
+#: model:ir.model.fields,help:saas_portal.field_saas_db__access_url
+msgid "Customer Portal URL"
+msgstr "客户门户 URL"
+
+#. module: saas_portal
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db__display_name
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db_backup__display_name
+msgid "Display Name"
+msgstr "显示名称"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.domain_change_notice_dialog
+msgid "Domain of origin build will be assigned to this build"
+msgstr "源构建的域名将分配给此构建"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.approve_build_result
+msgid "Go back to build"
+msgstr "返回构建"
+
+#. module: saas_portal
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db__id
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db_backup__id
+msgid "ID"
+msgstr "ID"
+
+#. module: saas_portal
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db__is_approved
+msgid "Is temporary build approved?"
+msgstr "临时构建是否已批准？"
+
+#. module: saas_portal
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db__is_temporary
+msgid "Is temporary build?"
+msgstr "是临时构建吗？"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_build
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_table_builds
+msgid "Link"
+msgstr "链接"
+
+#. module: saas_portal
+#. odoo-python
+#: code:addons/saas_portal/controllers/portal.py:0
+msgid "Name"
+msgstr "名称"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.ignore_is_approved_dialog
+msgid "No"
+msgstr "否"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_table_builds
+msgid "None"
+msgstr "无"
+
+#. module: saas_portal
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db__number_of_queue_jobs_to_be_done
+msgid "Number Of Queue Jobs To Be Done"
+msgstr "待完成的队列任务数量"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.domain_change_notice_dialog
+msgid "Ok"
+msgstr "确定"
+
+#. module: saas_portal
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db__access_url
+msgid "Portal Access URL"
+msgstr "门户访问 URL"
+
+#. module: saas_portal
+#. odoo-python
+#: code:addons/saas_portal/models/saas_db.py:0
+msgid "Predecessor build is not set"
+msgstr "未设置前一构建"
+
+#. module: saas_portal
+#: model:ir.module.module,shortdesc:base.module_saas_portal
+msgid "SaaS: Portal"
+msgstr "SaaS：门户"
+
+#. module: saas_portal
+#: model:ir.model.fields,field_description:saas_portal.field_saas_db__access_token
+msgid "Security Token"
+msgstr "安全令牌"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.saas_db_form_view
+msgid "Set as main"
+msgstr "设为主域名"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_builds
+msgid "Temporary builds"
+msgstr "临时构建"
+
+#. module: saas_portal
+#. odoo-python
+#: code:addons/saas_portal/controllers/portal.py:0
+msgid "The tenant database does not exist."
+msgstr "租户数据库不存在。"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.portal_my_builds
+msgid "There are no builds"
+msgstr "没有构建"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.approve_build_result
+msgid ""
+"This build is marked as approved successfully. Please wait for some time, "
+"until admin sets this build as main."
+msgstr "此构建已成功标记为已批准。请稍候，等待管理员将其设为主构建。"
+
+#. module: saas_portal
+#. odoo-python
+#: code:addons/saas_portal/models/saas_db.py:0
+msgid "This build is not marked as temporary"
+msgstr "此构建未标记为临时"
+
+#. module: saas_portal
+#: model_terms:ir.ui.view,arch_db:saas_portal.ignore_is_approved_dialog
+msgid "Yes"
+msgstr "是"
+
+#. module: saas_portal
+#. odoo-python
+#: code:addons/saas_portal/controllers/portal.py:0
+msgid "You do not own this tenant database."
+msgstr "您并不拥有此租户数据库。"

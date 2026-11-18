@@ -1,0 +1,427 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* saas_apps
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0-20260926\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-18 03:59+0000\n"
+"PO-Revision-Date: 2026-11-18 03:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: saas_apps
+#: model:ir.module.module,description:base.module_saas_apps
+msgid ""
+".. image:: https://img.shields.io/badge/license-AGPL--3-blue.png\n"
+"   :target: https://www.gnu.org/licenses/agpl\n"
+"   :alt: License: AGPL-3\n"
+"\n"
+"===========\n"
+" Saas Apps\n"
+"===========\n"
+"\n"
+"Base module for manage modules in saas.\n"
+"\n"
+"Module allows to choose modules that users gonna use in their db.\n"
+"\n"
+"Credits\n"
+"=======\n"
+"\n"
+"Contributors\n"
+"------------\n"
+"* `Vildan Safin <https://www.it-projects.info/team/Enigma228322>`__\n"
+"* `Eugene Molotov <https://www.it-projects.info/team/em230418>`__\n"
+"\n"
+"Sponsors\n"
+"--------\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Maintainers\n"
+"-----------\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"      To get a guaranteed support\n"
+"      you are kindly requested to purchase the module\n"
+"      at `odoo apps store <https://apps.odoo.com/apps/modules/14.0/saas_apps/>`__.\n"
+"\n"
+"      Thank you for understanding!\n"
+"\n"
+"      `IT-Projects Team <https://www.it-projects.info/team>`__\n"
+"\n"
+"Further information\n"
+"===================\n"
+"\n"
+"Demo: http://runbot.it-projects.info/demo/saas-addons/14.0\n"
+"\n"
+"HTML Description: https://apps.odoo.com/apps/modules/14.0/saas_apps/\n"
+"\n"
+"Usage instructions: `<doc/index.rst>`_\n"
+"\n"
+"Changelog: `<doc/changelog.rst>`_\n"
+"\n"
+"Notifications on updates: `via Atom <https://github.com/it-projects-llc/saas-addons/commits/14.0/saas_apps.atom>`_, `by Email <https://blogtrottr.com/?subscribe=https://github.com/it-projects-llc/saas-addons/commits/14.0/saas_apps.atom>`_\n"
+"\n"
+"Tested on Odoo 14.0 feb7c99f47cae55fff77035fe53975ea4a14d624\n"
+msgstr ""
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "/ month"
+msgstr "/ 月"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "/ year"
+msgstr "/ 年"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "<b id=\"apps-qty\" class=\"left-align-price\">0</b> Apps"
+msgstr "<b id=\"apps-qty\" class=\"left-align-price\">0</b> 个应用"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "<b id=\"users-qty\" class=\"left-align-price\">1</b> Users"
+msgstr "<b id=\"users-qty\" class=\"left-align-price\">1</b> 个用户"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "<small id=\"box-period\" class=\"text-muted period fnt-24\">year</small>"
+msgstr "<small id=\"box-period\" class=\"text-muted period fnt-24\">年</small>"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Annually"
+msgstr "按年"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Buy now"
+msgstr "立即购买"
+
+#. module: saas_apps
+#. odoo-python
+#: code:addons/saas_apps/controllers/main.py:0
+msgid "Choose a monthly or yearly subscription."
+msgstr "请选择按月或按年订阅。"
+
+#. module: saas_apps
+#. odoo-python
+#: code:addons/saas_apps/controllers/main.py:0
+msgid "Choose a valid user quantity and product selection."
+msgstr "请选择有效的用户数量和产品。"
+
+#. module: saas_apps
+#. odoo-python
+#: code:addons/saas_apps/controllers/main.py:0
+msgid "Choose one SaaS package per order."
+msgstr "每个订单只能选择一个 SaaS 套餐。"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Choose the number of <b>Users</b>"
+msgstr "选择<b>用户</b>数量"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Choose your Apps"
+msgstr "选择你的应用"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Choose your Packages"
+msgstr "选择你的套餐"
+
+#. module: saas_apps
+#: model:ir.module.module,summary:base.module_saas_apps
+msgid "Choose your apps"
+msgstr "选择你的应用"
+
+#. module: saas_apps
+#: model:ir.model,name:saas_apps.model_res_config_settings
+msgid "Config Settings"
+msgstr "配置设置"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__create_uid
+msgid "Created by"
+msgstr "创建人"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__create_date
+msgid "Created on"
+msgstr "创建时间"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__currency_id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__currency_id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__currency_id
+msgid "Currency"
+msgstr "货币"
+
+#. module: saas_apps
+#: model:ir.model,name:saas_apps.model_saas_template
+msgid "Database Template"
+msgstr "数据库模板"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Decrease users qty"
+msgstr "减少用户数量"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__dependency_ids
+msgid "Dependencies"
+msgstr "依赖"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_product_template__display_name
+#: model:ir.model.fields,field_description:saas_apps.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__display_name
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__display_name
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__display_name
+msgid "Display Name"
+msgstr "显示名称"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_product_template__id
+#: model:ir.model.fields,field_description:saas_apps.field_res_config_settings__id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__id
+msgid "ID"
+msgstr "ID"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__icon_image
+msgid "Icon"
+msgstr "图标"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Increase users qty"
+msgstr "增加用户数量"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__is_package
+msgid "Is package?"
+msgstr "是套餐吗？"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__write_uid
+msgid "Last Updated by"
+msgstr "最后更新人"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__write_date
+msgid "Last Updated on"
+msgstr "最后更新时间"
+
+#. module: saas_apps
+#: model:ir.ui.menu,name:saas_apps.menu_website_manage_apps_list
+msgid "Manage Apps"
+msgstr "管理应用"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__shortdesc
+msgid "Module Name"
+msgstr "模块名称"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__month_ptv
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__month_ptv
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__month_ptv
+msgid "Month Ptv"
+msgstr "月 Ptv"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__month_price
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__month_price
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__month_price
+msgid "Month price"
+msgstr "月价格"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Monthly"
+msgstr "按月"
+
+#. module: saas_apps
+#. odoo-python
+#: code:addons/saas_apps/controllers/main.py:0
+msgid ""
+"One or more selected products are not available for this subscription "
+"period."
+msgstr "一个或多个所选产品在此订阅周期不可用。"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__package_image
+msgid "Package image"
+msgstr "套餐图片"
+
+#. module: saas_apps
+#: model:ir.model,name:saas_apps.model_saas_period_product_mixin
+msgid "Period Product Mixin"
+msgstr "周期产品 Mixin"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Please wait..."
+msgstr "请稍候..."
+
+#. module: saas_apps
+#: model:website.menu,name:saas_apps.main_pricing_menu
+msgid "Pricing"
+msgstr "定价"
+
+#. module: saas_apps
+#: model:ir.model,name:saas_apps.model_product_template
+msgid "Product"
+msgstr "产品"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__product_tmpl_id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__product_tmpl_id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__product_tmpl_id
+msgid "Product Tmpl"
+msgstr "产品模板"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__year_product_id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__year_product_id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__year_product_id
+msgid "Product for annually subscription"
+msgstr "按年订阅产品"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__month_product_id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__month_product_id
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__month_product_id
+msgid "Product for monthly subscription"
+msgstr "按月订阅产品"
+
+#. module: saas_apps
+#. odoo-javascript
+#: code:addons/saas_apps/static/src/xml/base.xml:0
+#: code:addons/saas_apps/static/src/xml/list_buttons.xml:0
+msgid "Refresh"
+msgstr "刷新"
+
+#. module: saas_apps
+#. odoo-javascript
+#: code:addons/saas_apps/static/src/xml/list_buttons.xml:0
+msgid "Reload apps from this instance"
+msgstr "从此实例重新加载应用"
+
+#. module: saas_apps
+#: model:ir.model,name:saas_apps.model_saas_app
+msgid "SaaS App"
+msgstr "SaaS 应用"
+
+#. module: saas_apps
+#: model:ir.module.module,shortdesc:base.module_saas_apps
+msgid "SaaS Apps"
+msgstr "SaaS 应用"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.res_config_settings_view_form
+msgid "SaaS pricing page"
+msgstr "SaaS 定价页"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_product_product__saas_app_id
+#: model:ir.model.fields,field_description:saas_apps.field_product_template__saas_app_id
+msgid "Saas App"
+msgstr "SaaS 应用"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_product_product__saas_package_id
+#: model:ir.model.fields,field_description:saas_apps.field_product_template__saas_package_id
+msgid "Saas Package"
+msgstr "SaaS 套餐"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.saas_app_search
+msgid "Search Redirect"
+msgstr "搜索重定向"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__allow_to_sell
+msgid "Sellable"
+msgstr "可销售"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_res_config_settings__show_buy_now_button
+#: model_terms:ir.ui.view,arch_db:saas_apps.res_config_settings_view_form
+msgid "Show 'Buy now' button"
+msgstr "显示“立即购买”按钮"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_res_config_settings__show_try_trial_button
+#: model_terms:ir.ui.view,arch_db:saas_apps.res_config_settings_view_form
+msgid "Show 'Try trial' button"
+msgstr "显示“试用”按钮"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.res_config_settings_view_form
+msgid "Show applications at \"price\" page"
+msgstr "在“定价”页显示应用"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_res_config_settings__show_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.res_config_settings_view_form
+msgid "Show apps"
+msgstr "显示应用"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_res_config_settings__show_packages
+#: model_terms:ir.ui.view,arch_db:saas_apps.res_config_settings_view_form
+msgid "Show packages"
+msgstr "显示套餐"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.res_config_settings_view_form
+msgid "Show packages at \"price\" page"
+msgstr "在“定价”页显示套餐"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__name
+msgid "Technical Name"
+msgstr "技术名称"
+
+#. module: saas_apps
+#. odoo-python
+#: code:addons/saas_apps/controllers/main.py:0
+msgid "The user quantity must be a positive whole number."
+msgstr "用户数量必须是正整数。"
+
+#. module: saas_apps
+#: model_terms:ir.ui.view,arch_db:saas_apps.price
+msgid "Try trial"
+msgstr "试用"
+
+#. module: saas_apps
+#: model:ir.actions.act_window,name:saas_apps.action_saas_app_list
+msgid "Website Apps"
+msgstr "网站应用"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__year_ptv
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__year_ptv
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__year_ptv
+msgid "Year Ptv"
+msgstr "年 Ptv"
+
+#. module: saas_apps
+#: model:ir.model.fields,field_description:saas_apps.field_saas_app__year_price
+#: model:ir.model.fields,field_description:saas_apps.field_saas_period_product_mixin__year_price
+#: model:ir.model.fields,field_description:saas_apps.field_saas_template__year_price
+msgid "Year price"
+msgstr "年价格"

@@ -1,0 +1,131 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* saas_operator_remote
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0-20260926\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-18 04:00+0000\n"
+"PO-Revision-Date: 2026-11-18 04:00+0000\n"
+"Last-Translator: \n"
+"Language: zh_CN\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: saas_operator_remote
+#: model:ir.module.module,description:base.module_saas_operator_remote
+msgid ""
+".. image:: https://img.shields.io/badge/license-AGPL--3-blue.png\n"
+"   :target: https://www.gnu.org/licenses/agpl\n"
+"   :alt: License: AGPL-3\n"
+"\n"
+"=======================\n"
+" SaaS Operator: Remote\n"
+"=======================\n"
+"\n"
+"This module allows to deploy builds on remote Odoo instance\n"
+"\n"
+"Credits\n"
+"=======\n"
+"\n"
+"Contributors\n"
+"------------\n"
+"* `Eugene Molotov <https://it-projects.info/team/em230418>`__:\n"
+"\n"
+"Sponsors\n"
+"--------\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Maintainers\n"
+"-----------\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"      To get a guaranteed support\n"
+"      you are kindly requested to purchase the module\n"
+"      at `odoo apps store <https://apps.odoo.com/apps/modules/14.0/saas_operator_remote/>`__.\n"
+"\n"
+"      Thank you for understanding!\n"
+"\n"
+"      `IT-Projects Team <https://www.it-projects.info/team>`__\n"
+"\n"
+"Further information\n"
+"===================\n"
+"\n"
+"Demo: http://runbot.it-projects.info/demo/saas-addons/14.0\n"
+"\n"
+"HTML Description: https://apps.odoo.com/apps/modules/14.0/saas_operator_remote/\n"
+"\n"
+"Usage instructions: `<doc/index.rst>`_\n"
+"\n"
+"Changelog: `<doc/changelog.rst>`_\n"
+"\n"
+"Notifications on updates: `via Atom <https://github.com/it-projects-llc/saas-addons/commits/14.0/saas_operator_remote.atom>`_, `by Email <https://blogtrottr.com/?subscribe=https://github.com/it-projects-llc/saas-addons/commits/14.0/saas_operator_remote.atom>`_\n"
+"\n"
+"Tested on Odoo 14.0 47707e1b099195487fd3d3e0ae012e4aed5a9bc5\n"
+msgstr ""
+
+#. module: saas_operator_remote
+#. odoo-python
+#: code:addons/saas_operator_remote/models/saas_operator.py:0
+msgid "Configure a valid HTTP or HTTPS URL for the remote operator."
+msgstr "请为远程操作员配置有效的 HTTP 或 HTTPS URL。"
+
+#. module: saas_operator_remote
+#. odoo-python
+#: code:addons/saas_operator_remote/models/saas_operator.py:0
+msgid "Configure the remote operator master password."
+msgstr "请配置远程操作员主密码。"
+
+#. module: saas_operator_remote
+#: model:ir.model,name:saas_operator_remote.model_saas_operator
+msgid "Database Operator"
+msgstr "数据库操作员"
+
+#. module: saas_operator_remote
+#: model:ir.model.fields,field_description:saas_operator_remote.field_saas_operator__display_name
+msgid "Display Name"
+msgstr "显示名称"
+
+#. module: saas_operator_remote
+#: model:ir.model.fields,field_description:saas_operator_remote.field_saas_operator__id
+msgid "ID"
+msgstr "ID"
+
+#. module: saas_operator_remote
+#: model:ir.model.fields,field_description:saas_operator_remote.field_saas_operator__remote_instance_url
+msgid "Instance URL"
+msgstr "实例 URL"
+
+#. module: saas_operator_remote
+#: model:ir.model.fields,field_description:saas_operator_remote.field_saas_operator__remote_master_pwd
+msgid "Master Password"
+msgstr "主密码"
+
+#. module: saas_operator_remote
+#: model:ir.model.fields.selection,name:saas_operator_remote.selection__saas_operator__type__remote
+msgid "Remote Instance"
+msgstr "远程实例"
+
+#. module: saas_operator_remote
+#: model_terms:ir.ui.view,arch_db:saas_operator_remote.saas_operator_form_view
+msgid "Remote instance settings"
+msgstr "远程实例设置"
+
+#. module: saas_operator_remote
+#: model:ir.module.module,shortdesc:base.module_saas_operator_remote
+msgid "SaaS Operator: Remote"
+msgstr "SaaS 操作员：远程"
+
+#. module: saas_operator_remote
+#: model:ir.module.module,summary:base.module_saas_operator_remote
+msgid "This module allows to deploy builds on remote Odoo instance"
+msgstr "此模块允许在远程 Odoo 实例上部署构建"
+
+#. module: saas_operator_remote
+#: model:ir.model.fields,field_description:saas_operator_remote.field_saas_operator__type
+msgid "Type"
+msgstr "类型"

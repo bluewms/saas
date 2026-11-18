@@ -1,0 +1,848 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* saas
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0-20260926\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-18 03:59+0000\n"
+"PO-Revision-Date: 2026-11-18 03:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: saas
+#: model:ir.module.module,description:base.module_saas
+msgid ""
+".. image:: https://img.shields.io/badge/license-AGPL--3-blue.png\n"
+"   :target: https://www.gnu.org/licenses/agpl\n"
+"   :alt: License: AGPL-3\n"
+"\n"
+"===========\n"
+" SaaS Base\n"
+"===========\n"
+"\n"
+"Base module for master SaaS instance.\n"
+"\n"
+"The module is similar to ``saas_portal`` in *odoo-saas-tools*.\n"
+"\n"
+"Models overview\n"
+"===============\n"
+"\n"
+"* ``saas.template`` -- similar to ``saas_portal.plan`` in *odoo-saas-tools*, but covers only technical aspects (database creation) and not any sale/trial stuff. A single record can be used for multiple servers (via ``saas.template.operator``.\n"
+"* ``saas.operator`` -- similar to ``saas_portal.server`` in *odoo-saas-tools*. Credentials to create-destroy, update, migrate, backup, etc. odoo instances.\n"
+"\n"
+"  * It doesn't need special odoo instance (database, *SaaS Server* in terms of\n"
+"    *odoo-saas-tool* project) in corresponding server and could work by sending\n"
+"    requests, for example, to kubernetes.\n"
+"  * Single *operator* is only one set of modules at some versions. If you have a\n"
+"    server which is used for different versions of odoo or just module version,\n"
+"    then you need you to create ``saas.operator`` per each module set. Those\n"
+"    *operators* may use same credentials.\n"
+"  * Different *Operators* may have same postgresql scope. It's usefull in\n"
+"    staging when we apply a database for new versions of modules. On the other\n"
+"    hand, it force us to have unique database names across operators\n"
+"\n"
+"* ``saas.db`` -- similar to ``saas_portal.client`` in *odoo-saas-tools*\n"
+"* ``saas.log`` -- saas history, e.g. database creation, updating, etc.\n"
+"\n"
+"Roadmap\n"
+"=======\n"
+"\n"
+"* TODO: Create menu for SaaS Operator\n"
+"    * smart button for builds list\n"
+"* TODO: Create menu for SaaS Log model\n"
+"    * saas.db form: add smart button for saas.log's\n"
+"    * saas.operator: add smart button for saas.log's\n"
+"* TODO: Add check uniqueness of database name across saas.db records with state == done. Also check that there is no records of saas.db with name equal to one that user wants to use in use in wizard, saas template operator.\n"
+"* TODO: Make the saas.template form duplicable again\n"
+"* TODO: Add page refresh button on saas.template form\n"
+"* TODO: saas_test: add database creation rollback and extra safety:\n"
+"    * setUp: prepare list of database names that will be created during the tests. Check that those databases don't exist and raise error otherwise\n"
+"    * use random suffix to avoid droping database reserved for production purposes during test execution, e.g. template_database_ecusnc63asdf234\n"
+"    * tearDown: drop created databases after test exectuion\n"
+"* TODO: Add coverage for \"Connect to the build\" button:\n"
+"    * get authentication on master database in requests' session (use authenticate method from odoo/tests/common.py)\n"
+"    * open \"connect to build url\"\n"
+"    * check that you are finally redirected to /web page at the build\n"
+"* TODO: add computed record in saas.db model to avoid using the name of the master database. Some new db type is needed. Say, ``('other', 'Reserved DB Name')``\n"
+"\n"
+"* TODO: saas.operator: add a button that runs a wizard which allows to make new build (saas.db) from backup; add a method in ``saas.operator`` which takes the backup as argument; implement the method for \"Same Instance\" operator\n"
+"\n"
+"Credits\n"
+"=======\n"
+"\n"
+"Contributors\n"
+"------------\n"
+"* `Ivan Yelizariev <https://it-projects.info/team/yelizariev>`__\n"
+"* `Denis Mudarisov <https://it-projects.info/team/mudarisov>`__\n"
+"* `Eugene Molotov <https://it-projects.info/team/em230418>`__\n"
+"\n"
+"Sponsors\n"
+"--------\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Maintainers\n"
+"-----------\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Further information\n"
+"===================\n"
+"\n"
+"Demo: http://runbot.it-projects.info/demo/saas-addons/14.0\n"
+"\n"
+"Usage instructions: `<doc/index.rst>`_\n"
+"\n"
+"Changelog: `<doc/changelog.rst>`_\n"
+"\n"
+"Notifications on updates: `via Atom <https://github.com/it-projects-llc/saas-addons/commits/14.0/saas.atom>`_, `by Email <https://blogtrottr.com/?subscribe=https://github.com/it-projects-llc/saas-addons/commits/14.0/saas.atom>`_\n"
+"\n"
+"Tested on Odoo 14.0 8ca3ea063050f2ab2d19cce8a68116489872a734\n"
+msgstr ""
+
+#. module: saas
+#: model:ir.model.constraint,message:saas.constraint_saas_db_name_operator_unique
+msgid "A database name must be unique per operator."
+msgstr "每个操作员上的数据库名必须唯一。"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_needaction
+msgid "Action Needed"
+msgstr "需要采取行动"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_attachment_count
+msgid "Attachment Count"
+msgstr "附件数量"
+
+#. module: saas
+#: model:ir.model,name:saas.model_auth_quick_master_token
+msgid "Authentication Token"
+msgstr "身份验证令牌"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_operator__db_url_template
+msgid "Avaialble variables: {db_name}"
+msgstr "可用变量：{db_name}"
+
+#. module: saas
+#: model:ir.module.module,summary:base.module_saas
+msgid "Base module for master SaaS instance"
+msgstr "SaaS 主实例的基础模块"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_template.py:0
+msgid "Both db_name and draft_build_id are given."
+msgstr "同时提供了 db_name 和 draft_build_id。"
+
+#. module: saas
+#: model:ir.model,name:saas.model_saas_db
+msgid "Build"
+msgstr "构建"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_operator__build_count
+msgid "Build Count"
+msgstr "构建数量"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__build_creation_id
+msgid "Build Creation"
+msgstr "构建创建"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template__build_post_init
+msgid "Build Initialization"
+msgstr "构建初始化"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__build_post_init_ids
+msgid "Build Initialization Values"
+msgstr "构建初始化值"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__build_name
+msgid "Build name"
+msgstr "构建名称"
+
+#. module: saas
+#: model_terms:ir.ui.view,arch_db:saas.saas_template_create_build
+msgid "Build post init form"
+msgstr "构建初始化后表单"
+
+#. module: saas
+#: model:ir.model,name:saas.model_build_post_init_line
+msgid "Build post init line"
+msgstr "构建初始化后明细"
+
+#. module: saas
+#: model:ir.actions.act_window,name:saas.saas_db_action
+#: model:ir.ui.menu,name:saas.saas_main_menu_item_2
+#: model_terms:ir.ui.view,arch_db:saas.saas_operator_form_view
+msgid "Builds"
+msgstr "构建"
+
+#. module: saas
+#: model_terms:ir.ui.view,arch_db:saas.saas_template_create_build
+msgid "Cancel"
+msgstr "取消"
+
+#. module: saas
+#: model:ir.ui.menu,name:saas.saas_main_menu_config
+msgid "Configuration"
+msgstr "配置"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_operator.py:0
+msgid "Configure a valid HTTP or HTTPS operator URL without credentials."
+msgstr "请配置不含凭据的有效 HTTP 或 HTTPS 操作员 URL。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_operator.py:0
+msgid "Configure a valid HTTP or HTTPS operator URL."
+msgstr "请配置有效的 HTTP 或 HTTPS 操作员 URL。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_operator.py:0
+msgid "Configure the database URL template on the operator first."
+msgstr "请先在操作员上配置数据库 URL 模板。"
+
+#. module: saas
+#: model_terms:ir.ui.view,arch_db:saas.saas_db_form_view
+msgid "Connect to the Build"
+msgstr "连接到构建"
+
+#. module: saas
+#: model_terms:ir.ui.view,arch_db:saas.saas_template_create_build
+#: model_terms:ir.ui.view,arch_db:saas.saas_template_form_view
+msgid "Create Build"
+msgstr "创建构建"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__create_uid
+#: model:ir.model.fields,field_description:saas.field_saas_db__create_uid
+#: model:ir.model.fields,field_description:saas.field_saas_log__create_uid
+#: model:ir.model.fields,field_description:saas.field_saas_module__create_uid
+#: model:ir.model.fields,field_description:saas.field_saas_operator__create_uid
+#: model:ir.model.fields,field_description:saas.field_saas_template__create_uid
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__create_uid
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__create_uid
+msgid "Created by"
+msgstr "创建人"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__create_date
+#: model:ir.model.fields,field_description:saas.field_saas_db__create_date
+#: model:ir.model.fields,field_description:saas.field_saas_log__create_date
+#: model:ir.model.fields,field_description:saas.field_saas_module__create_date
+#: model:ir.model.fields,field_description:saas.field_saas_operator__create_date
+#: model:ir.model.fields,field_description:saas.field_saas_template__create_date
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__create_date
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__create_date
+msgid "Created on"
+msgstr "创建时间"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__type
+msgid "DB Type"
+msgstr "数据库类型"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_operator__db_url_template
+msgid "DB URLs"
+msgstr "数据库 URL"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_log__type__creation
+msgid "DB is being created"
+msgstr "数据库正在创建"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_log__type__created
+msgid "DB is created"
+msgstr "数据库已创建"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_log__type__dropped
+msgid "DB is dropped"
+msgstr "数据库已删除"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_template_operator__state__creating
+msgid "Database Creating"
+msgstr "数据库创建中"
+
+#. module: saas
+#: model:ir.model,name:saas.model_saas_log
+msgid "Database Event Log"
+msgstr "数据库事件日志"
+
+#. module: saas
+#: model:ir.model,name:saas.model_saas_operator
+msgid "Database Operator"
+msgstr "数据库操作员"
+
+#. module: saas
+#: model:ir.model,name:saas.model_saas_template
+msgid "Database Template"
+msgstr "数据库模板"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__operator_db_state
+msgid "Database operator state"
+msgstr "数据库操作员状态"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_log__db_id
+msgid "Db"
+msgstr "数据库"
+
+#. module: saas
+#: model_terms:ir.ui.view,arch_db:saas.res_config_settings_view_form
+msgid "Defaults"
+msgstr "默认值"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_module__description
+msgid "Description"
+msgstr "描述"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_auth_quick_master_token__display_name
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__display_name
+#: model:ir.model.fields,field_description:saas.field_queue_job__display_name
+#: model:ir.model.fields,field_description:saas.field_saas_db__display_name
+#: model:ir.model.fields,field_description:saas.field_saas_log__display_name
+#: model:ir.model.fields,field_description:saas.field_saas_module__display_name
+#: model:ir.model.fields,field_description:saas.field_saas_operator__display_name
+#: model:ir.model.fields,field_description:saas.field_saas_template__display_name
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__display_name
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__display_name
+msgid "Display Name"
+msgstr "显示名称"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_db__state__draft
+#: model:ir.model.fields.selection,name:saas.selection__saas_template_operator__state__draft
+msgid "Draft"
+msgstr "草稿"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_log__description
+msgid "Extra data"
+msgstr "附加数据"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_template_operator__state__post_init
+msgid "Extra initialization"
+msgstr "附加初始化"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_follower_ids
+msgid "Followers"
+msgstr "关注者"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "关注者（业务伙伴）"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__has_message
+msgid "Has Message"
+msgstr "有消息"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_auth_quick_master_token__id
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__id
+#: model:ir.model.fields,field_description:saas.field_queue_job__id
+#: model:ir.model.fields,field_description:saas.field_saas_db__id
+#: model:ir.model.fields,field_description:saas.field_saas_log__id
+#: model:ir.model.fields,field_description:saas.field_saas_module__id
+#: model:ir.model.fields,field_description:saas.field_saas_operator__id
+#: model:ir.model.fields,field_description:saas.field_saas_template__id
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__id
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__id
+msgid "ID"
+msgstr "ID"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_db__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "如果勾选，新消息需要您的关注。"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_db__message_has_error
+#: model:ir.model.fields,help:saas.field_saas_db__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "如果勾选，部分消息存在发送错误。"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template__template_demo
+msgid "Install demo data"
+msgstr "安装演示数据"
+
+#. module: saas
+#: model_terms:ir.ui.view,arch_db:saas.saas_db_form_view
+#: model_terms:ir.ui.view,arch_db:saas.saas_template_operator_form_view
+msgid "Install missing mandatory modules"
+msgstr "安装缺失的必装模块"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/auth_quick_master_token.py:0
+msgid "Invalid tenant database."
+msgstr "无效的租户数据库。"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_is_follower
+msgid "Is Follower"
+msgstr "是关注者"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template__is_technical_template
+msgid "Is technical template?"
+msgstr "是技术模板吗？"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__key
+msgid "Key"
+msgstr "键"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__write_uid
+#: model:ir.model.fields,field_description:saas.field_saas_db__write_uid
+#: model:ir.model.fields,field_description:saas.field_saas_log__write_uid
+#: model:ir.model.fields,field_description:saas.field_saas_module__write_uid
+#: model:ir.model.fields,field_description:saas.field_saas_operator__write_uid
+#: model:ir.model.fields,field_description:saas.field_saas_template__write_uid
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__write_uid
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__write_uid
+msgid "Last Updated by"
+msgstr "最后更新人"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__write_date
+#: model:ir.model.fields,field_description:saas.field_saas_db__write_date
+#: model:ir.model.fields,field_description:saas.field_saas_log__write_date
+#: model:ir.model.fields,field_description:saas.field_saas_module__write_date
+#: model:ir.model.fields,field_description:saas.field_saas_operator__write_date
+#: model:ir.model.fields,field_description:saas.field_saas_template__write_date
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__write_date
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__write_date
+msgid "Last Updated on"
+msgstr "最后更新时间"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_log__type
+msgid "Log type"
+msgstr "日志类型"
+
+#. module: saas
+#: model:res.groups,name:saas.group_manager
+msgid "Manager"
+msgstr "管理员"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_operator__global_url
+msgid "Master URL (Server-to-Server)"
+msgstr "主 URL（服务器间）"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_has_error
+msgid "Message Delivery error"
+msgstr "消息发送错误"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_ids
+msgid "Messages"
+msgstr "消息"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_template_operator__state__installing_modules
+msgid "Modules installation"
+msgstr "模块安装"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template__template_module_ids
+msgid "Modules to install"
+msgstr "要安装的模块"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__name
+#: model:ir.model.fields,field_description:saas.field_saas_operator__name
+#: model:ir.model.fields,field_description:saas.field_saas_template__name
+msgid "Name"
+msgstr "名称"
+
+#. module: saas
+#: model:res.groups.privilege,placeholder:saas.res_groups_privilege_saas
+msgid "No"
+msgstr "否"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_db__type__build
+msgid "Normal Build"
+msgstr "普通构建"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_needaction_counter
+msgid "Number of Actions"
+msgstr "操作数量"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_has_error_counter
+msgid "Number of errors"
+msgstr "错误数量"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_db__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "需要处理的消息数量"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_db__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "发送错误的消息数量"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/wizard/saas_template_create_build.py:0
+msgid "Only SaaS managers can create builds with initialization values."
+msgstr "只有 SaaS 管理员才能创建带初始化值的构建。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_operator.py:0
+msgid "Only SaaS managers can manage database operators."
+msgstr "只有 SaaS 管理员才能管理数据库操作员。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_db.py:0
+msgid "Only SaaS managers can manage tenant databases."
+msgstr "只有 SaaS 管理员才能管理租户数据库。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_db.py:0
+msgid "Only a provisioned tenant database can be marked ready."
+msgstr "只有已开通的租户数据库才能标记为就绪。"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__operator_id
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__operator_id
+#: model:ir.model.fields.selection,name:saas.selection__saas_log__data_id__saas_operator
+msgid "Operator"
+msgstr "操作员"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__operator_db_id
+msgid "Operator Db"
+msgstr "操作员数据库"
+
+#. module: saas
+#: model:ir.actions.act_window,name:saas.saas_operator_action
+#: model:ir.ui.menu,name:saas.saas_operator_menu_item
+msgid "Operators"
+msgstr "操作员"
+
+#. module: saas
+#: model:ir.actions.server,name:saas.preparing_template_next_cron_ir_actions_server
+msgid "Preparing Template Next Cron"
+msgstr "准备模板的下次定时任务"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_db__state__creating
+msgid "Provisioning"
+msgstr "开通中"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_template__build_post_init
+msgid "Python code to be executed once build db is created from template"
+msgstr "从模板创建构建数据库后执行的 Python 代码"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_template__template_post_init
+msgid ""
+"Python code to be executed once db is created and modules are installed"
+msgstr "数据库创建并安装模块后执行的 Python 代码"
+
+#. module: saas
+#: model:ir.model,name:saas.model_queue_job
+msgid "Queue Job"
+msgstr "队列任务"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_log__type__authed
+msgid "Quick Authentication"
+msgstr "快速认证"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__rating_ids
+msgid "Ratings"
+msgstr "评价"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_db__state__done
+#: model:ir.model.fields.selection,name:saas.selection__saas_template_operator__state__done
+msgid "Ready"
+msgstr "就绪"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_queue_job__record_ids
+msgid "Record"
+msgstr "记录"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_log__data_id
+msgid "Reference"
+msgstr "引用"
+
+#. module: saas
+#: model_terms:ir.ui.view,arch_db:saas.saas_db_form_view
+#: model_terms:ir.ui.view,arch_db:saas.saas_template_form_view
+msgid "Refresh"
+msgstr "刷新"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "短信发送错误"
+
+#. module: saas
+#: model:ir.module.category,name:saas.module_management
+#: model:ir.ui.menu,name:saas.saas_main_menu
+#: model:res.groups.privilege,name:saas.res_groups_privilege_saas
+#: model_terms:ir.ui.view,arch_db:saas.res_config_settings_view_form
+msgid "SaaS"
+msgstr "SaaS"
+
+#. module: saas
+#: model:ir.module.module,shortdesc:base.module_saas
+msgid "SaaS Base"
+msgstr "SaaS 基础"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/tools.py:0
+msgid ""
+"SaaS operations require the configured management database. Set "
+"SAAS_MASTER_DATABASE on the server."
+msgstr "SaaS 操作需要已配置的管理数据库。请在服务器上设置 SAAS_MASTER_DATABASE。"
+
+#. module: saas
+#: model:ir.actions.server,name:saas.refresh_saas_db_data_ir_actions_server
+msgid "SaaS: refresh data from build database"
+msgstr "SaaS：从构建数据库刷新数据"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_operator__type__local
+msgid "Same Instance"
+msgstr "同一实例"
+
+#. module: saas
+#: model:ir.actions.act_window,name:saas.action_config_settings
+#: model:ir.ui.menu,name:saas.saas_main_menu_config_settings
+msgid "Settings"
+msgstr "设置"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_db__state
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__state
+msgid "State"
+msgstr "状态"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_db__name
+msgid "Technical Database name"
+msgstr "技术数据库名"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_module__name
+msgid "Technical name"
+msgstr "技术名称"
+
+#. module: saas
+#: model:ir.actions.act_window,name:saas.saas_technical_template_action
+#: model:ir.ui.menu,name:saas.saas_main_menu_config_tt
+msgid "Technical templates"
+msgstr "技术模板"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_module__template_ids
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__template_id
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__template_id
+#: model_terms:ir.ui.view,arch_db:saas.saas_template_view_tree
+msgid "Template"
+msgstr "模板"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_db__type__template
+msgid "Template DB"
+msgstr "模板数据库"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template__template_post_init
+msgid "Template Initialization"
+msgstr "模板初始化"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_operator__template_operator_ids
+msgid "Template Operator"
+msgstr "模板操作员"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__template_operator_count
+msgid "Template Operator Count"
+msgstr "模板操作员数量"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__operator_db_name
+msgid "Template database name"
+msgstr "模板数据库名"
+
+#. module: saas
+#: model:ir.model,name:saas.model_saas_template_operator
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__template_operator_id
+msgid "Template's Deployment"
+msgstr "模板部署"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template__operator_ids
+msgid "Template's deployments"
+msgstr "模板部署"
+
+#. module: saas
+#: model:ir.model,name:saas.model_saas_module
+msgid "Template's modules to install"
+msgstr "模板要安装的模块"
+
+#. module: saas
+#: model:ir.actions.act_window,name:saas.saas_template_action
+#: model:ir.ui.menu,name:saas.saas_main_menu_item
+msgid "Templates"
+msgstr "模板"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_operator.py:0
+msgid "The SaaS management database cannot be operated on as a tenant."
+msgstr "SaaS 管理数据库不能作为租户进行操作。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_db.py:0
+msgid "The SaaS management database cannot be used as a tenant."
+msgstr "SaaS 管理数据库不能用作租户。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_operator.py:0
+msgid "The build belongs to another operator."
+msgstr "该构建属于另一个操作员。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_template.py:0
+msgid "The selected build is not a draft tenant database."
+msgstr "所选构建不是草稿状态的租户数据库。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_template.py:0
+msgid "The selected build uses another operator."
+msgstr "所选构建使用另一个操作员。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_template.py:0
+msgid "The template deployment is not ready."
+msgstr "模板部署未就绪。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/auth_quick_master_token.py:0
+msgid "The tenant database is not ready."
+msgstr "租户数据库未就绪。"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_template.py:0
+msgid ""
+"There are no ready template's deployments. Create new one or wait until it's"
+" done."
+msgstr "没有就绪的模板部署。请创建新部署或等待其完成。"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_template_create_build__build_post_init_ids
+msgid ""
+"These values will be used on execution template's Build Initialization code"
+msgstr "这些值将在执行模板的构建初始化代码时使用"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template_operator__to_rebuild
+msgid "To Rebuild"
+msgstr "待重建"
+
+#. module: saas
+#: model:ir.model.fields.selection,name:saas.selection__saas_log__data_id__auth_quick_master_token
+msgid "Token"
+msgstr "令牌"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_operator__type
+msgid "Type"
+msgstr "类型"
+
+#. module: saas
+#: model:ir.model.fields,help:saas.field_saas_operator__global_url
+msgid "URL for server-to-server communication "
+msgstr "服务器间通信 URL "
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_template_create_build__random
+msgid "Use random operator"
+msgstr "使用随机操作员"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/saas_operator.py:0
+msgid "Use {db_name} as the database URL placeholder."
+msgstr "使用 {db_name} 作为数据库 URL 占位符。"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_saas_log__user_id
+#: model:res.groups,name:saas.group_user
+msgid "User"
+msgstr "用户"
+
+#. module: saas
+#: model:ir.module.category,description:saas.module_management
+msgid "User access level for SaaS"
+msgstr "SaaS 用户访问级别"
+
+#. module: saas
+#: model:ir.model.fields,field_description:saas.field_build_post_init_line__value
+msgid "Value"
+msgstr "值"
+
+#. module: saas
+#: model:ir.model,name:saas.model_saas_template_create_build
+msgid "Wizard to create build by template"
+msgstr "按模板创建构建的向导"
+
+#. module: saas
+#. odoo-python
+#: code:addons/saas/models/auth_quick_master_token.py:0
+msgid "You do not have access to this tenant database."
+msgstr "您没有此租户数据库的访问权限。"

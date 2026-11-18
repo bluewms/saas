@@ -1,0 +1,245 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* saas_backups
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0-20260926\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-18 03:59+0000\n"
+"PO-Revision-Date: 2026-11-18 03:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: saas_backups
+#: model:ir.module.module,description:base.module_saas_backups
+msgid ""
+".. image:: https://img.shields.io/badge/license-AGPL--3-blue.png\n"
+"   :target: https://www.gnu.org/licenses/agpl\n"
+"   :alt: License: AGPL-3\n"
+"\n"
+"===============\n"
+" SaaS: Backups\n"
+"===============\n"
+"\n"
+"This module makes backups for build.\n"
+"\n"
+"Credits\n"
+"=======\n"
+"\n"
+"Contributors\n"
+"------------\n"
+"\n"
+"* `Eugene Molotov <https://github.com/em230418>`__\n"
+"\n"
+"Sponsors\n"
+"--------\n"
+"\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Maintainers\n"
+"-----------\n"
+"\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+msgstr ""
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db__active
+msgid "Active"
+msgstr "有效"
+
+#. module: saas_backups
+#: model_terms:ir.ui.view,arch_db:saas_backups.saas_db_form_view
+msgid "Archive"
+msgstr "归档"
+
+#. module: saas_backups
+#: model:ir.model.fields.selection,name:saas_backups.selection__saas_db__state__archived
+msgid "Archived"
+msgstr "已归档"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db__backup_ids
+msgid "Backup"
+msgstr "备份"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db__backup_count
+msgid "Backup count"
+msgstr "备份数量"
+
+#. module: saas_backups
+#: model:ir.model.fields,help:saas_backups.field_saas_db_backup__name
+#: model:ir.model.fields,help:saas_backups.field_saas_db_backup__remote_filename
+msgid "Backup filename on operator"
+msgstr "操作员上的备份文件名"
+
+#. module: saas_backups
+#: model_terms:ir.ui.view,arch_db:saas_backups.saas_db_form_view
+msgid "Backups"
+msgstr "备份"
+
+#. module: saas_backups
+#: model:ir.model,name:saas_backups.model_saas_db
+msgid "Build"
+msgstr "构建"
+
+#. module: saas_backups
+#: model:ir.model,name:saas_backups.model_saas_db_backup
+msgid "Build backup"
+msgstr "构建备份"
+
+#. module: saas_backups
+#: model_terms:ir.ui.view,arch_db:saas_backups.saas_db_form_view
+msgid "Create backup"
+msgstr "创建备份"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__create_uid
+msgid "Created by"
+msgstr "创建人"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__create_date
+msgid "Created on"
+msgstr "创建时间"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_queue_job__display_name
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db__display_name
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__display_name
+msgid "Display Name"
+msgstr "显示名称"
+
+#. module: saas_backups
+#: model:ir.model.fields.selection,name:saas_backups.selection__saas_db__state__failed
+msgid "Failed"
+msgstr "失败"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_queue_job__id
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db__id
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__id
+msgid "ID"
+msgstr "ID"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__job_ids
+msgid "Job"
+msgstr "任务"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__write_uid
+msgid "Last Updated by"
+msgstr "最后更新人"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__write_date
+msgid "Last Updated on"
+msgstr "最后更新时间"
+
+#. module: saas_backups
+#: model:ir.module.module,summary:base.module_saas_backups
+msgid "Makes backups of builds"
+msgstr "为构建制作备份"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__name
+msgid "Name"
+msgstr "名称"
+
+#. module: saas_backups
+#. odoo-python
+#: code:addons/saas_backups/models/queue_job.py:0
+msgid "No restored build defined"
+msgstr "未定义恢复构建"
+
+#. module: saas_backups
+#. odoo-python
+#: code:addons/saas_backups/models/saas_db.py:0
+msgid "Only a ready database can be backed up."
+msgstr "只有就绪的数据库才能备份。"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db__origin_build_id
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__origin_build_id
+msgid "Origin Build"
+msgstr "源构建"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db__origin_backup_id
+msgid "Origin backup"
+msgstr "源备份"
+
+#. module: saas_backups
+#: model_terms:ir.ui.view,arch_db:saas_backups.saas_db_backup_view_form
+msgid "Pending jobs"
+msgstr "待处理任务"
+
+#. module: saas_backups
+#: model:ir.model,name:saas_backups.model_queue_job
+msgid "Queue Job"
+msgstr "队列任务"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__remote_filename
+msgid "Remote filename"
+msgstr "远程文件名"
+
+#. module: saas_backups
+#. odoo-python
+#: code:addons/saas_backups/models/saas_db.py:0
+msgid ""
+"Remove or reassign the backup records before deleting their source database."
+msgstr "删除源数据库前，请先移除或重新分配其备份记录。"
+
+#. module: saas_backups
+#: model_terms:ir.ui.view,arch_db:saas_backups.saas_db_backup_view_form
+msgid "Restore backup"
+msgstr "恢复备份"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_queue_job__restored_build_id
+msgid "Restored Build"
+msgstr "恢复的构建"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__restored_build_count
+msgid "Restored build count"
+msgstr "恢复构建数量"
+
+#. module: saas_backups
+#: model_terms:ir.ui.view,arch_db:saas_backups.saas_db_backup_view_form
+msgid "Restored builds"
+msgstr "恢复的构建"
+
+#. module: saas_backups
+#: model:ir.module.module,shortdesc:base.module_saas_backups
+msgid "SaaS: Backups"
+msgstr "SaaS：备份"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db__state
+msgid "State"
+msgstr "状态"
+
+#. module: saas_backups
+#: model:ir.model.fields,field_description:saas_backups.field_saas_db_backup__unfinished_job_count
+msgid "Unfinished job count"
+msgstr "未完成任务数量"
+
+#. module: saas_backups
+#: model_terms:ir.ui.view,arch_db:saas_backups.view_queue_job_form
+msgid "View restored build"
+msgstr "查看恢复的构建"
+
+#. module: saas_backups
+#. odoo-python
+#: code:addons/saas_backups/models/saas_db_backup.py:0
+msgid "Wait for the backup to complete before restoring it."
+msgstr "请等待备份完成后再恢复。"

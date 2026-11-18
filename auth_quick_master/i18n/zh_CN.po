@@ -1,0 +1,175 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* auth_quick_master
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0-20260926\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-18 04:00+0000\n"
+"PO-Revision-Date: 2026-11-18 04:00+0000\n"
+"Last-Translator: \n"
+"Language: zh_CN\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: auth_quick_master
+#: model:ir.module.module,description:base.module_auth_quick_master
+msgid ""
+".. image:: https://img.shields.io/badge/license-LGPL--3-blue.png\n"
+"   :target: https://www.gnu.org/licenses/lgpl\n"
+"   :alt: License: LGPL-3\n"
+"\n"
+"=======================\n"
+" Quick Auth (Master)\n"
+"=======================\n"
+"\n"
+"Authentication provider for ``auth_quick`` module.\n"
+"\n"
+"Allows users from group ``Quick authentication for builds`` be authenticated as any user from the build. Access levels to builds can be extented in a custom module.\n"
+"\n"
+"How it works\n"
+"============\n"
+"\n"
+"Base idea is similar to OAuth protocol.\n"
+"\n"
+"* User is authenticated in master odoo database (where this module is installed)\n"
+"* User opens url in the build (where ``auth_quick`` module is installed): ``build-123.example.com/auth_quick/login?build_login=admin`` (authentication via ``?build_user_id=1`` is also supported). This module doesn't provider UI with such links and has to be implemented via another module depending on your needs.\n"
+"* Build redirects User back to master odoo with build reference\n"
+"* Master odoo creates record in model ``auth_quick_master.token`` with fields\n"
+"\n"
+"  * ``user_id``\n"
+"  * ``build``\n"
+"  * ``build_login``\n"
+"  * ``build_user_id``\n"
+"  * ``token``\n"
+"\n"
+"* Master odoo redirects User back to the build with new url: ``build-123.example.com/auth_quick/check-token?token=abcdf456789``\n"
+"* Build validates the token by sending direct request to Master odoo and initialize session if token is valid\n"
+"\n"
+"Credits\n"
+"=======\n"
+"\n"
+"Contributors\n"
+"------------\n"
+"* `Ivan Yelizariev <https://it-projects.info/team/yelizariev>`__\n"
+"\n"
+"Sponsors\n"
+"--------\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Maintainers\n"
+"-----------\n"
+"* `IT-Projects LLC <https://it-projects.info>`__\n"
+"\n"
+"Further information\n"
+"===================\n"
+"\n"
+"Demo: http://runbot.it-projects.info/demo/saas-addons/14.0\n"
+"\n"
+"HTML Description: https://apps.odoo.com/apps/modules/14.0/auth_quick_master/\n"
+"\n"
+"Usage instructions: `<doc/index.rst>`_\n"
+"\n"
+"Changelog: `<doc/changelog.rst>`_\n"
+"\n"
+"Notifications on updates: `via Atom <https://github.com/it-projects-llc/saas-addons/commits/14.0/auth_quick_master.atom>`_, `by Email <https://blogtrottr.com/?subscribe=https://github.com/it-projects-llc/saas-addons/commits/14.0/auth_quick_master.atom>`_\n"
+"\n"
+"Tested on Odoo 14.0 8ca3ea063050f2ab2d19cce8a68116489872a734\n"
+msgstr ""
+
+#. module: auth_quick_master
+#: model:ir.model,name:auth_quick_master.model_auth_quick_master_token
+msgid "Authentication Token"
+msgstr "身份验证令牌"
+
+#. module: auth_quick_master
+#: model:ir.module.module,summary:base.module_auth_quick_master
+msgid "Authentication provider for \"Quick Authentication\" module"
+msgstr "“快速认证”模块的身份验证提供方"
+
+#. module: auth_quick_master
+#. odoo-python
+#: code:addons/auth_quick_master/models/token.py:0
+msgid "Authentication tokens must be issued through the login flow."
+msgstr "身份验证令牌必须通过登录流程签发。"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__build
+msgid "Build Reference"
+msgstr "构建引用"
+
+#. module: auth_quick_master
+#. odoo-python
+#: code:addons/auth_quick_master/controllers/main.py:0
+msgid "Continue to the tenant database"
+msgstr "继续进入租户数据库"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__create_uid
+msgid "Created by"
+msgstr "创建人"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__create_date
+msgid "Created on"
+msgstr "创建时间"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__display_name
+msgid "Display Name"
+msgstr "显示名称"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__id
+msgid "ID"
+msgstr "ID"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__write_uid
+msgid "Last Updated by"
+msgstr "最后更新人"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__write_date
+msgid "Last Updated on"
+msgstr "最后更新时间"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__user_id
+msgid "Master User"
+msgstr "主用户"
+
+#. module: auth_quick_master
+#: model:ir.module.module,shortdesc:base.module_auth_quick_master
+msgid "Quick Auth (Master)"
+msgstr "快速认证（主端）"
+
+#. module: auth_quick_master
+#: model:res.groups,name:auth_quick_master.group_auth_quick
+msgid "Quick authentication for builds"
+msgstr "构建的快速认证"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__token
+msgid "Token"
+msgstr "令牌"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__build_user_id
+msgid "User ID"
+msgstr "用户 ID"
+
+#. module: auth_quick_master
+#: model:ir.model.fields,field_description:auth_quick_master.field_auth_quick_master_token__build_login
+msgid "User Login"
+msgstr "用户登录名"
+
+#. module: auth_quick_master
+#. odoo-python
+#: code:addons/auth_quick_master/models/token.py:0
+msgid "You don't have access to quick authentication."
+msgstr "您没有快速认证的访问权限。"
