@@ -8,6 +8,16 @@ _logger = logging.getLogger(__name__)
 
 
 class CustomerPortal(CustomerPortal):
+    def _get_owned_build(self, build_id):
+        build = request.env['saas.db'].browse(build_id).exists()
+        if not build:
+            raise MissingError(request.env._('The tenant database does not exist.'))
+        build.check_access('read')
+        if not request.env.user.has_group('saas.group_manager') and build.admin_user != request.env.user:
+            raise AccessError(request.env._('You do not own this tenant database.'))
+        # Only the verified owner or a manager can request tenant mutations.
+        return build.sudo()
+
     def _prepare_home_portal_values(self, counters):
         values = super()._prepare_home_portal_values(counters)
         if "build_count" in counters:
@@ -30,7 +40,7 @@ class CustomerPortal(CustomerPortal):
         searchbar_sortings = {
             "name": {"label": _("Name"), "order": "name"},
         }
-        if not sortby:
+        if sortby not in searchbar_sortings:
             sortby = "name"
         order = searchbar_sortings[sortby]["order"]
 
@@ -70,7 +80,7 @@ class CustomerPortal(CustomerPortal):
     @http.route("/my/build/<int:build_id>/approve", type="http", auth="user", website=True, methods=["POST"])
     def portal_my_build_approve(self, build_id=None, access_token=None, **kw):
         try:
-            build_sudo = self._document_check_access("saas.db", build_id, access_token)
+            build_sudo = self._get_owned_build(build_id)
         except (AccessError, MissingError):
             return request.redirect("/my")
 

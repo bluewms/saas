@@ -5,13 +5,13 @@ from collections.abc import Mapping
 from contextlib import contextmanager
 from datetime import datetime
 import logging
-from itertools import combinations
 import os
 import re
-import string
+import secrets
+import tempfile
 import threading
 
-from odoo import SUPERUSER_ID, api, sql_db, tools
+from odoo import SUPERUSER_ID, api, fields, tools
 from odoo.exceptions import UserError
 from odoo.http import request_var
 from odoo.models import BaseModel
@@ -25,15 +25,37 @@ from odoo.addons.host2db import host2db_config
 
 _logger = logging.getLogger(__name__)
 BACKUP_DIR = tools.config["data_dir"] + "/backups"
-if not os.path.exists(BACKUP_DIR):
-    os.mkdir(BACKUP_DIR)
 
 # Captured at import time, before the test framework patches Registry.new.
 _REAL_REGISTRY_NEW = Registry.new
+_TEST_GUARD_LOCK = threading.RLock()
+
+
+def validate_database_name(db_name):
+    if (
+        not isinstance(db_name, str)
+        or not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]{0,62}", db_name)
+        or db_name.lower() in {"postgres", "template0", "template1"}
+    ):
+        raise UserError("Invalid tenant database name.")
+    return db_name
 
 
 def full_backup_path(backup_name):
-    return BACKUP_DIR + "/" + backup_name
+    if (
+        not isinstance(backup_name, str)
+        or not backup_name
+        or os.path.basename(backup_name) != backup_name
+        or "\\" in backup_name
+        or "\x00" in backup_name
+        or not backup_name.endswith(".zip")
+    ):
+        raise UserError("Invalid backup filename.")
+    root = os.path.realpath(BACKUP_DIR)
+    path = os.path.join(root, backup_name)
+    if os.path.commonpath([root, os.path.realpath(path)]) != root or os.path.islink(path):
+        raise UserError("Backup path is outside the backup directory.")
+    return path
 
 
 __all__ = [
@@ -45,6 +67,7 @@ __all__ = [
     "unmap_domain",
     "execute_kw",
     "create_backup",
+    "deploy_backup",
     "signal_changes",
 ]
 
@@ -59,6 +82,19 @@ def turn_off_tests():
     operator legitimately does here: create and provision template/build
     databases, which are separate databases and separate cursors.
     """
+    if not tools.config["test_enable"] and not odoo_module.current_test:
+        yield
+        return
+
+    # The configuration and registry factory are process globals. Serialize
+    # test-only changes and leave production workers completely untouched.
+    with _TEST_GUARD_LOCK:
+        with _turn_off_tests():
+            yield
+
+
+@contextmanager
+def _turn_off_tests():
     test_enable = tools.config["test_enable"]
     current_test = odoo_module.current_test
     registry_new = Registry.new
@@ -89,30 +125,45 @@ def build_cursor(db_name):
     The guards stay lifted while the cursor closes: committing a transaction
     that invalidated the registry rebuilds it right there.
     """
-    with turn_off_tests():
-        registry = Registry(db_name)
-        with registry.cursor() as cr:
-            yield cr
+    validate_database_name(db_name)
+    thread = threading.current_thread()
+    previous_dbname = getattr(thread, "dbname", None)
+    request_token = request_var.set(None)
+    thread.dbname = db_name
+    try:
+        with turn_off_tests():
+            registry = Registry(db_name)
+            with registry.cursor() as cr:
+                yield cr
+    finally:
+        request_var.reset(request_token)
+        thread.dbname = previous_dbname
 
 
-def create_db(template_db, db_name, demo, lang="en_US", admin_password="admin", **kw):
+def create_db(template_db, db_name, demo, lang="en_US", admin_password=None, **kw):
+    validate_database_name(db_name)
+    if template_db:
+        validate_database_name(template_db)
     # to avoid installing extra modules we need this condition
-    if tools.config["init"]:
-        tools.config["init"] = {}
-
-    with turn_off_tests():
-        if template_db:
-            db.duplicate(template_db, db_name)
-        else:
-            db.create(
-                db_name,
-                demo=bool(demo),
-                user_password=admin_password,
-                lang=lang,
-            )
+    initial_modules = tools.config["init"]
+    tools.config["init"] = {}
+    try:
+        with turn_off_tests():
+            if template_db:
+                db.duplicate(template_db, db_name)
+            else:
+                db.create(
+                    db_name,
+                    demo=bool(demo),
+                    user_password=admin_password or secrets.token_urlsafe(32),
+                    lang=lang,
+                )
+    finally:
+        tools.config["init"] = initial_modules
 
 
 def drop_db(db_name):
+    validate_database_name(db_name)
     # Odoo 20 replaced db.exp_drop (which ignored missing databases) by
     # db.drop, that raises.
     if db.exist(db_name):
@@ -120,23 +171,26 @@ def drop_db(db_name):
 
 
 def install_modules(db_name, modules):
-    conn = sql_db.db_connect(db_name)
     # The guards stay lifted while the cursor closes: committing a transaction
     # that changed the registry builds the new registry right there.
-    with turn_off_tests(), conn.cursor() as cr:
+    with build_cursor(db_name) as cr:
         env = api.Environment(cr, SUPERUSER_ID, {})
-
-        # Unbind the current request.
-        #
-        # Odoo tries to use its values in translation system, which may eventually
-        # change currentThread().dbname to saas master value.
-        request_token = request_var.set(None)
 
         # We need to have fresh module list before installing new ones
         env["ir.module.module"].update_list()
 
+        module_domain = fields.Domain(modules)
+        requested_names = set()
+        for condition in module_domain.iter_conditions():
+            if condition.field_expr == 'name' and condition.operator == 'in':
+                requested_names.update(condition.value)
+        available = env['ir.module.module'].search([('name', 'in', sorted(requested_names))])
+        unavailable = requested_names - set(available.filtered(lambda module: module.state != 'uninstallable').mapped('name'))
+        if unavailable:
+            raise UserError(env._('Modules are not available on this operator: %s', sorted(unavailable)))
+
         module_ids = env["ir.module.module"].search(
-            [("state", "=", "uninstalled")] + modules
+            fields.Domain("state", "=", "uninstalled") & module_domain
         )
         module_ids.button_immediate_install()
 
@@ -144,14 +198,8 @@ def install_modules(db_name, modules):
         # performed when leaving this cursor signals the registry change.
         env.transaction.will_change_registry()
 
-        # return request back
-        request_var.reset(request_token)
-
-
 def post_init(db_name, template_post_init):
-    conn = sql_db.db_connect(db_name)
-    with turn_off_tests(), conn.cursor() as cr:
-        Registry(db_name)
+    with build_cursor(db_name) as cr:
         env = api.Environment(cr, SUPERUSER_ID, {})
         action = env["ir.actions.server"].create(
             {
@@ -162,9 +210,11 @@ def post_init(db_name, template_post_init):
             }
         )
         action.run()
+        action.unlink()
 
 
 def map_domain(domain, db_name):
+    validate_database_name(db_name)
     host2db_config.assign_host_to_db(domain, db_name)
 
 
@@ -177,9 +227,24 @@ def execute_kw(db_name, model, method, args, kwargs):
 
 
 def create_backup(db_name):
-    backup_name = "{}_{}.zip".format(db_name, datetime.now().strftime("%Y-%m-%d_%H_%M_%S"))
-    with open(full_backup_path(backup_name), "wb") as f:
-        db.dump(db_name, f, backup_format="zip")
+    validate_database_name(db_name)
+    os.makedirs(BACKUP_DIR, mode=0o700, exist_ok=True)
+    backup_name = "{}_{}_{}.zip".format(
+        db_name, datetime.now().strftime("%Y-%m-%d_%H_%M_%S"), secrets.token_hex(8),
+    )
+    # Use a private temporary file in the confined data directory. Publish it
+    # only after the dump succeeds, so failed backups cannot be restored.
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=BACKUP_DIR, prefix=".backup-", delete=False) as backup_file:
+            temporary_path = backup_file.name
+            db.dump(db_name, backup_file, backup_format="zip")
+            backup_file.flush()
+            os.fsync(backup_file.fileno())
+        os.replace(temporary_path, full_backup_path(backup_name))
+    finally:
+        if temporary_path and os.path.exists(temporary_path):
+            os.unlink(temporary_path)
     return {
         "name": backup_name,
     }
@@ -190,20 +255,29 @@ def remove_backup(backup_name):
 
 
 def _get_new_database_name(old_db_name):
-    for suffix_length in (1, 2, 3):  # should be enough for one day
-        for combo in combinations(string.ascii_lowercase, suffix_length):
-            db_name = old_db_name + "_" + datetime.now().strftime("%Y-%m-%d") + "".join(combo)
-            if not db.exist(db_name):
-                return db_name
+    validate_database_name(old_db_name)
+    for _ in range(10):
+        db_name = "{}_{}_{}".format(
+            old_db_name[:43], datetime.now().strftime("%Y-%m-%d"), secrets.token_hex(4),
+        )
+        if not db.exist(db_name):
+            return db_name
 
 
 def deploy_backup(backup_name):
-    original_db_name = re.match(r"([^_]+)_.*\.zip", backup_name).group(1)
+    backup_path = full_backup_path(backup_name)
+    match = re.fullmatch(
+        r"(.+)_\d{4}-\d{2}-\d{2}_\d{2}_\d{2}_\d{2}(?:_[0-9a-f]{16})?\.zip",
+        backup_name,
+    )
+    if not match or not os.path.isfile(backup_path):
+        raise UserError("Backup file is missing or its filename is invalid.")
+    original_db_name = match.group(1)
     db_name = _get_new_database_name(original_db_name)
     if not db_name:
         raise Exception("Cannot calculate database name for deploying backup %s" % (backup_name,))
 
-    db.restore(db_name, full_backup_path(backup_name), copy=True)
+    db.restore(db_name, backup_path, copy=True)
     return {
         "db_name": db_name,
     }
@@ -222,7 +296,6 @@ def signal_changes(db_name):
 # It is expected, that master password check will protect
 # from unauthorized usage
 def execute(db, uid, obj, method, *args, **kw):
-    threading.current_thread().dbname = db
     with build_cursor(db) as cr:
         env = api.Environment(cr, uid, {})
         env.transaction.default_env = env

@@ -68,7 +68,14 @@ class SaasApp(models.Model):
 
     @api.model
     def action_make_applist_from_local_instance(self):
+        self.env['saas.db']._check_management_access()
+        visited = set()
+
         def walk(parent_ir_module_name, parent_app_name=None):
+            key = (parent_ir_module_name, parent_app_name)
+            if key in visited:
+                return
+            visited.add(key)
             modules = self.env["ir.module.module.dependency"].sudo().search([("name", "=", parent_ir_module_name)]).mapped("module_id")
             for m in modules:
                 app_name = None

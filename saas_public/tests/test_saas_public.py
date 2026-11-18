@@ -1,6 +1,7 @@
 # Copyright 2019 Denis Mudarisov <https://it-projects.info/team/trojikman>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 import urllib
+from lxml import html
 
 from odoo.addons.saas.tests.common_saas_test import Common
 from odoo.tests.common import tagged, HttpCase
@@ -15,6 +16,7 @@ class TestSaasPublic(HttpCase, Common):
         self.setup_saas_env()
         self.saas_template_1.write({
             'public_access': True,
+            'build_post_init': "env['mail.message'].create({{'subject': 'Public demo initialized'}})",
         })
         self.public_template = self.saas_template_1
         self.private_template = self.saas_template_2
@@ -28,6 +30,10 @@ class TestSaasPublic(HttpCase, Common):
         })
         url_1 = '/saas_public/{template_id}/create-fast-build?{params}'.format(template_id=self.public_template.id, params=params)
         public_template_response = self.url_open(url_1)
+        self.assertEqual(public_template_response.status_code, 200)
+        self.assertFalse([build for build in db.list_dbs() if build.startswith('fast-build')])
+        csrf = html.fromstring(public_template_response.content).xpath('//input[@name="csrf_token"]/@value')[0]
+        public_template_response = self.url_open(url_1, data={'csrf_token': csrf})
         self.assertIn(public_template_response.status_code, [200, 204], 'User must be redirected to the build')
         created_builds = [build for build in db.list_dbs() if build.startswith('fast-build')]
         self.assertTrue(created_builds)

@@ -8,11 +8,11 @@ class TestMain(TransactionCase):
 
         website_hr_recruitment = self.env['saas.app'].search([('name', '=', 'website_hr_recruitment')])
 
-        self.assertItemsEqual(
+        self.assertCountEqual(
             website_hr_recruitment.dependencies_str().split(","),
             ["hr_recruitment", "hr", "mail", "calendar", "website"]
         )
-        self.assertItemsEqual(
+        self.assertCountEqual(
             website_hr_recruitment.dependency_ids.mapped("name"),
             ["hr_recruitment", "mail", "website"],
         )
@@ -27,3 +27,12 @@ class TestMain(TransactionCase):
 
         self.assertEqual(app.month_product_id.lst_price, 1)
         self.assertEqual(app.year_product_id.lst_price, 2)
+
+    def test_new_package_has_sale_products_and_requested_prices(self):
+        package = self.env['saas.template'].create({
+            'name': 'Paid test package', 'is_package': True, 'month_price': 15, 'year_price': 150,
+        })
+        self.assertTrue(package.product_tmpl_id)
+        self.assertTrue(package.product_tmpl_id.website_published)
+        self.assertEqual(package.month_product_id.lst_price, 15)
+        self.assertEqual(package.year_product_id.lst_price, 150)

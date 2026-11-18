@@ -63,6 +63,7 @@ class SAASTemplate(models.Model):
                 raise ValidationError(msg)
 
     def write(self, vals):
+        self.check_access('write')
         # if the following fields are updated, then we need to rebuild the template database
         trigger_fields = ['template_demo', 'template_module_ids', 'template_post_init']
         updated = any(val in vals for val in trigger_fields)
@@ -72,6 +73,8 @@ class SAASTemplate(models.Model):
 
     def action_create_build(self):
         self.ensure_one()
+        self.check_access('read')
+        self.env['saas.db']._check_management_access()
         if any([rec.state == 'done' for rec in self.operator_ids]):
             return {
                 'type': 'ir.actions.act_window',
@@ -123,16 +126,18 @@ class SAASTemplateLine(models.Model):
 
     ], default='draft')
 
-    @api.model
     def unlink(self):
+        self.check_access('unlink')
         for rec in self:
             rec.operator_db_id.unlink()
         return super(SAASTemplateLine, self).unlink()
 
+    @api.private
     @api.model
     def get_to_rebuild(self):
         return self.search([('to_rebuild', '=', True)])
 
+    @api.private
     @api.model
     def preparing_template_next(self):
         template_operators = self.get_to_rebuild()
@@ -159,13 +164,17 @@ class SAASTemplateLine(models.Model):
         for r in self:
             message = '''Template\'s deployment with name {} is creating
             and will be ready in a few minutes.'''.format(r.operator_db_name)
-            self.operator_id.notify_users(message, message_type='info')
+            r.operator_id.notify_users(message, message_type='info')
             # delete db is there is one
             r.operator_db_id.drop_db()
-            # an interrupted run can leave a database behind whose saas.db
-            # record was rolled back, so drop the target name too
-            self.operator_id._drop_db(r.operator_db_name)
-            if not r.operator_db_id or r.operator_id != r.operator_db_id.operator_id:
+            # Never drop an unregistered database just because its name matches.
+            # An interrupted deployment needs an operator to verify ownership.
+            if r.operator_db_id and (
+                r.operator_id != r.operator_db_id.operator_id
+                or r.operator_db_name != r.operator_db_id.name
+            ):
+                r.operator_db_id.unlink()
+            if not r.operator_db_id:
                 r.operator_db_id = self.env['saas.db'].create({
                     'name': r.operator_db_name,
                     'operator_id': r.operator_id.id,
@@ -189,21 +198,32 @@ class SAASTemplateLine(models.Model):
         self.state = 'installing_modules'
         self.operator_id.with_delay().install_modules(self.template_id, self)
 
+    @api.private
     def prepare_name(self, db_name):
         self.ensure_one()
         return self.env['ir.http']._slugify(db_name)
 
+    @api.private
     def create_db(self, key_values=None, db_name=None, with_delay=True, draft_build_id=None):
         self.ensure_one()
+        self.check_access('read')
+        self.env['saas.db']._check_management_access()
+        if self.state != 'done':
+            raise UserError(self.env._('The template deployment is not ready.'))
         if not key_values:
             key_values = {}
 
-        assert not (draft_build_id and db_name), "Both db_name and draft_build_id are given"
+        if draft_build_id and db_name:
+            raise ValidationError(self.env._('Both db_name and draft_build_id are given.'))
 
         if draft_build_id:
-            build = self.env["saas.db"].browse(draft_build_id)
-            assert build.state == "draft", "Given build is not draft"
-            assert build.operator_id == self.operator_id, "Given build uses other operator"
+            build = self.env["saas.db"].browse(draft_build_id).exists()
+            build.ensure_one()
+            build._check_management_access()
+            if build.state != 'draft' or build.type != 'build':
+                raise ValidationError(self.env._('The selected build is not a draft tenant database.'))
+            if build.operator_id != self.operator_id:
+                raise ValidationError(self.env._('The selected build uses another operator.'))
 
         else:
             if not db_name:
@@ -227,6 +247,7 @@ class SAASTemplateLine(models.Model):
                 self.operator_id.delayable().build_post_init(
                     build, self.template_id.build_post_init, key_values
                 ),
+                build.delayable()._finalize_build(),
             ).delay()
         else:
             build.create_db(
@@ -236,9 +257,11 @@ class SAASTemplateLine(models.Model):
             build.action_install_missing_mandatory_modules()
 
             self.operator_id.build_post_init(build, self.template_id.build_post_init, key_values)
+            build._finalize_build()
 
         return build
 
+    @api.private
     def random_ready_operator(self):
         ready_operators = self.filtered(lambda r: r.state == 'done')
         if not ready_operators:
@@ -246,5 +269,6 @@ class SAASTemplateLine(models.Model):
         return random.choice(ready_operators)
 
     def action_install_missing_mandatory_modules(self):
+        self.env['saas.db']._check_management_access()
         for record in self:
             record.operator_db_id.action_install_missing_mandatory_modules()

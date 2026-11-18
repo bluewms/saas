@@ -1,0 +1,27 @@
+services:
+  odoo:
+    environment:
+      SAAS_MASTER_DATABASE: saas_core_test
+      PYTHONPATH: /mnt/python-deps
+      ODOO_QUEUE_JOB_CHANNELS: root:0
+    volumes:
+      - ${SAAS_QUEUE_ADDONS:?Set SAAS_QUEUE_ADDONS to the pinned OCA queue checkout}:/mnt/queue-addons:ro
+      - ${SAAS_PYTHON_DEPS:?Set SAAS_PYTHON_DEPS to the Python dependency directory}:/mnt/python-deps:ro
+    command:
+      - --config=/dev/null
+      - --db_host=db
+      - --db_user=odoo
+      - --db_password=saas_test_only
+      - --database=saas_core_test
+      - --db-filter=^saas_core_test$$
+      - --data-dir=/var/lib/odoo/saas-core-test-data
+      - --addons-path=/mnt/extra-addons,/mnt/queue-addons
+      - --load=web,host2db,queue_job
+      - --init=saas,saas_portal,saas_operator_remote,saas_installed_apps,saas_access_apps,saas_database_limit,saas_apps
+      - --update=saas,saas_portal,saas_operator_remote,saas_installed_apps,saas_access_apps,saas_database_limit,saas_apps,saas_backups,saas_domain_names,saas_expiration,saas_build_admin,saas_limit_max_users,saas_product,auth_quick_master,saas_cluster_simple
+      - --without-demo
+      - --test-enable
+      - --test-tags=/saas:TestSaasSecurity,/saas:TestSaasTokenAudience,/saas_apps:TestMain,/saas_product:TestSubscriptionPeriod
+      - --stop-after-init
+      - --max-cron-threads=0
+      - --http-port=8071

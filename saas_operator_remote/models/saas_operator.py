@@ -5,13 +5,18 @@ import json
 
 import requests
 
-from odoo import fields, models
+from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
+from urllib.parse import urlsplit
 
 
 def jsonrpc(url, params, timeout=1200):
-    data = {"jsonrpc": 2.0, "params": params}
-    req = requests.post(url, json=data, timeout=timeout)
+    data = {"jsonrpc": "2.0", "method": "call", "id": 1, "params": params}
+    # A redirect must never forward the master password to another endpoint.
+    req = requests.post(url, json=data, timeout=timeout, allow_redirects=False)
     req.raise_for_status()
+    if 300 <= req.status_code < 400:
+        raise UserError('The remote operator redirected the request. Configure its final URL.')
     try:
         response = req.json()
     except ValueError:
@@ -35,11 +40,21 @@ class SaasOperator(models.Model):
 
     _inherit = "saas.operator"
 
-    type = fields.Selection(selection_add=[("remote", "Remote Instance")])
+    type = fields.Selection(selection_add=[("remote", "Remote Instance")], ondelete={'remote': 'set default'})
     remote_instance_url = fields.Char("Instance URL")
-    remote_master_pwd = fields.Char("Master Password")
+    remote_master_pwd = fields.Char("Master Password", groups='base.group_system', copy=False)
+
+    @api.constrains('type', 'remote_instance_url', 'remote_master_pwd')
+    def _check_remote_configuration(self):
+        for operator in self.filtered(lambda op: op.type == 'remote'):
+            parsed = urlsplit(operator.remote_instance_url or '')
+            if parsed.scheme not in ('http', 'https') or not parsed.hostname or parsed.username or parsed.password:
+                raise ValidationError(self.env._('Configure a valid HTTP or HTTPS URL for the remote operator.'))
+            if not operator.remote_master_pwd:
+                raise ValidationError(self.env._('Configure the remote operator master password.'))
 
     def _create_db(self, template_db, db_name, demo, lang="en_US"):
+        self._check_management_database()
         remote_ops = self.filtered(lambda op: op.type == "remote")
         for op in remote_ops:
             jsonrpc(
@@ -58,6 +73,7 @@ class SaasOperator(models.Model):
         )
 
     def _drop_db(self, db_name):
+        self._check_management_database()
         remote_ops = self.filtered(lambda op: op.type == "remote")
         for op in remote_ops:
             jsonrpc(
@@ -68,6 +84,7 @@ class SaasOperator(models.Model):
         super(SaasOperator, self - remote_ops)._drop_db(db_name)
 
     def _install_modules(self, db_name, modules):
+        self._check_management_database()
         if self.type != "remote":
             return super(SaasOperator, self)._install_modules(db_name, modules)
 
@@ -81,6 +98,7 @@ class SaasOperator(models.Model):
         )
 
     def _post_init(self, db_name, template_post_init):
+        self._check_management_database()
         if self.type != "remote":
             return super(SaasOperator, self)._post_init(db_name, template_post_init)
 
@@ -94,6 +112,7 @@ class SaasOperator(models.Model):
         )
 
     def _build_execute_kw(self, db_name, model, method, args, kwargs):
+        self._check_management_database()
         if self.type != "remote":
             return super(SaasOperator, self)._build_execute_kw(
                 db_name, model, method, args, kwargs
@@ -113,6 +132,7 @@ class SaasOperator(models.Model):
         return response.get("result")
 
     def _map_domain(self, domain, db_name):
+        self._check_management_database()
         if self.type != "remote":
             return super(SaasOperator, self)._map_domain(domain, db_name)
 
@@ -127,6 +147,7 @@ class SaasOperator(models.Model):
         return response.get("result")
 
     def _unmap_domain(self, domain):
+        self._check_management_database()
         if self.type != "remote":
             return super(SaasOperator, self)._unmap_domain(domain)
 
@@ -137,6 +158,7 @@ class SaasOperator(models.Model):
         return response.get("result")
 
     def _create_backup_internal(self, db_name):
+        self._check_management_database()
         if self.type != "remote":
             return super(SaasOperator, self)._create_backup_internal(db_name)
 
@@ -147,6 +169,7 @@ class SaasOperator(models.Model):
         return response.get("result")
 
     def _deploy_backup_internal(self, backup_name):
+        self._check_management_database()
         if self.type != "remote":
             return super(SaasOperator, self)._deploy_backup_internal(backup_name)
 
@@ -157,6 +180,7 @@ class SaasOperator(models.Model):
         return response.get("result")
 
     def _signal_changes(self, db_name):
+        self._check_management_database()
         if self.type != "remote":
             return super(SaasOperator, self)._signal_changes(db_name)
 

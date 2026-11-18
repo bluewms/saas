@@ -21,7 +21,7 @@ class SaasDb(models.Model):
     # fmt: off
     expiration_date = fields.Datetime(
         "Expiration date",
-        default=lambda self: datetime.now() + timedelta(days=self._get_number_of_days_for_trial()),
+        default=lambda self: fields.Datetime.now() + timedelta(days=self._get_number_of_days_for_trial()),
     )
     # fmt: on
     expiration_state = fields.Selection(
@@ -33,13 +33,17 @@ class SaasDb(models.Model):
         compute="_compute_expiration_state",
     )
 
+    @api.depends('expiration_date')
     def _compute_expiration_state(self):
 
-        time_now = fields.datetime.now()
+        time_now = fields.Datetime.now()
 
         for build in self:
 
-            if time_now > build.expiration_date:
+            if not build.expiration_date:
+                build.expiration_state = 'active'
+
+            elif time_now >= build.expiration_date:
                 build.expiration_state = "expired"
 
             elif time_now < build.expiration_date and time_now >= (
@@ -53,12 +57,9 @@ class SaasDb(models.Model):
     def write_values_to_build(self):
         super(SaasDb, self).write_values_to_build()
 
-        if not self.expiration_date:
-            return
-
         self.execute_kw(
             "ir.config_parameter",
             "set_str",
             "database_expiration_date",
-            self.expiration_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+            self.expiration_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT) if self.expiration_date else False,
         )

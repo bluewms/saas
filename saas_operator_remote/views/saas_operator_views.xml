@@ -10,15 +10,17 @@
             <xpath expr="//field[@name='global_url']/.." position="after">
                 <group
                     string="Remote instance settings"
-                    invisible="[('type', '!=', 'remote')]"
+                    invisible="type != 'remote'"
                 >
                     <field
                         name="remote_instance_url"
-                        required="[('type', '=', 'remote')]"
+                        required="type == 'remote'"
                     />
                     <field
                         name="remote_master_pwd"
-                        required="[('type', '=', 'remote')]"
+                        required="type == 'remote'"
+                        password="True"
+                        groups="base.group_system"
                     />
                 </group>
             </xpath>

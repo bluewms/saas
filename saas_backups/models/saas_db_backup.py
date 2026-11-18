@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import api, fields, models
+from odoo.exceptions import UserError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ class Backup(models.Model):
     name = fields.Char(related="remote_filename", string="Name")
 
     origin_build_id = fields.Many2one(
-        "saas.db", readonly=True, required=True,  # TODO: restrict delition of build_id
+        "saas.db", readonly=True, required=True, ondelete='restrict',
     )
     remote_filename = fields.Char(
         "Remote filename", help="Backup filename on operator", readonly=True
@@ -24,6 +25,15 @@ class Backup(models.Model):
     )
 
     job_ids = fields.Many2many("queue.job", readonly=True)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        self.env['saas.db']._check_management_access()
+        return super().create(vals_list)
+
+    def write(self, vals):
+        self.env['saas.db']._check_management_access()
+        return super().write(vals)
 
     def _compute_restored_build_count(self):
         for record in self:
@@ -85,6 +95,10 @@ class Backup(models.Model):
 
     def action_restore(self):
         self.ensure_one()
+        self.check_access('write')
+        self.origin_build_id._check_management_access()
+        if not self.remote_filename:
+            raise UserError(self.env._('Wait for the backup to complete before restoring it.'))
         job = self.with_delay()._restore_backup_job()
 
         if not job:
@@ -104,6 +118,8 @@ class Backup(models.Model):
         return {
             "name": deploy_backup_res["db_name"],
             "origin_backup_id": self.id,
+            'state': 'draft',
+            'active': True,
         }
 
     def _restore_backup_job(self):
@@ -122,8 +138,8 @@ class Backup(models.Model):
         if job_uuid:
             job = self.env["queue.job"].search([("uuid", "=", job_uuid)], limit=1)
             job.write({"restored_build_id": restored_build_id.id})
-            job.user_id.notify_info(
-                message="Backup for database %s restored as %s"
+            job.user_id._bus_send('simple_notification', {
+                'message': "Backup for database %s restored as %s"
                 % (self.origin_build_id.name, restored_build_id.name),
-                sticky=True,
-            )
+                'sticky': True, 'type': 'info',
+            })

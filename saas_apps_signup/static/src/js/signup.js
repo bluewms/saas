@@ -1,6 +1,7 @@
 /* Copyright 2020 Eugene Molotov <https://it-projects.info/team/em230418>
    License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).*/
 import { rpc } from "@web/core/network/rpc";
+import { _t } from "@web/core/l10n/translation";
 
 function node(id) {
     return document.getElementById(id);
@@ -30,7 +31,9 @@ function setup() {
     if (!databaseName) {
         return;
     }
+    let availabilityRequest = 0;
     databaseName.addEventListener("change", () => {
+        const requestId = ++availabilityRequest;
         const helper = node("build-domain-helper");
         const submitBtn = document.querySelector('.oe_login_buttons > button[type="submit"]');
         if (!helper) {
@@ -56,6 +59,9 @@ function setup() {
             database_name: databaseName.value,
             operator_id: operator ? operator.value : undefined,
         }).then((response) => {
+            if (requestId !== availabilityRequest) {
+                return;
+            }
             hideAll();
             if (response.domain) {
                 const domain = helper.querySelector("span.domain");
@@ -75,6 +81,16 @@ function setup() {
                     failed.textContent = response.answer;
                     failed.style.display = "";
                 }
+            }
+        }).catch(() => {
+            if (requestId !== availabilityRequest) {
+                return;
+            }
+            hideAll();
+            const failed = helper.querySelector(".build-domain-helper_status-false");
+            if (failed) {
+                failed.textContent = _t("Cannot check database availability. Please try again.");
+                failed.style.display = "";
             }
         });
     });

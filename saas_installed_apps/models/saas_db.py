@@ -28,9 +28,9 @@ class SaasDb(models.Model):
                 (
                     6,
                     0,
-                    self.env["saas.module"]._search(
+                    self.env["saas.module"].search(
                         [("name", "in", installed_apps_names)]
-                    ),
+                    ).ids,
                 )
             ]
         )

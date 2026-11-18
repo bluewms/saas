@@ -25,6 +25,7 @@ class SAASLog(models.Model):
     db_id = fields.Many2one('saas.db')
     user_id = fields.Many2one('res.users', 'User', default=lambda s: s.env.user.id)
 
+    @api.private
     def log_db_creating(self, db, template=None):
         self.create({
             'type': 'creation',
@@ -33,6 +34,7 @@ class SAASLog(models.Model):
             'db_id': db.id,
         })
 
+    @api.private
     def log_db_created(self, db):
         self.create({
             'type': 'created',
@@ -40,6 +42,7 @@ class SAASLog(models.Model):
             'db_id': db.id,
         })
 
+    @api.private
     def log_db_authed(self, tokens):
         for token in tokens:
             self.create({
@@ -49,6 +52,7 @@ class SAASLog(models.Model):
                 'user_id': token.user_id.id,
             })
 
+    @api.private
     def log_db_dropped(self, db):
         self.create({
             'type': 'dropped',

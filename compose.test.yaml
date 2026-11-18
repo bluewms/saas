@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16.0
+    pull_policy: never
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: saas_test_only
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  odoo:
+    image: odoo:20
+    pull_policy: never
+    entrypoint: ["odoo"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/mnt/extra-addons:ro
+      - saas-test-data:/var/lib/odoo
+    command:
+      - --config=/dev/null
+      - --db_host=db
+      - --db_user=odoo
+      - --db_password=saas_test_only
+      - --database=saas_security_test
+      - --db-filter=^saas_security_test$$
+      - --data-dir=/var/lib/odoo/saas-test-data
+      - --addons-path=/mnt/extra-addons
+      - --load=web,host2db
+      - --init=auth_quick_master,saas_cluster_simple
+      - --update=auth_quick_master,saas_cluster_simple
+      - --without-demo
+      - --test-enable
+      - --test-tags=/auth_quick_master,/saas_cluster_simple
+      - --stop-after-init
+      - --max-cron-threads=0
+      - --http-port=8071
+
+volumes:
+  saas-test-data:

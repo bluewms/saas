@@ -5,4 +5,9 @@
         <field name="method">build_post_init</field>
         <field name="retry_pattern" eval="{1: 30, 3: 60, 5: 120}" />
     </record>
+    <record id="job_function_saas_db_finalize_build" model="queue.job.function">
+        <field name="model_id" ref="saas.model_saas_db" />
+        <field name="method">_finalize_build</field>
+        <field name="retry_pattern" eval="{1: 30, 3: 60, 5: 120}" />
+    </record>
 </odoo>

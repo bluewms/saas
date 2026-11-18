@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "odoo_major": "20.0",
+  "checked_at": "2026-11-18",
+  "repositories": [
+    {
+      "repository": "https://github.com/OCA/queue",
+      "branch": "20.0",
+      "revision": "8ef39564c562fb57c828904443d780f37a47e84e",
+      "modules": ["queue_job"],
+      "status": "available"
+    },
+    {
+      "repository": "https://github.com/OCA/web",
+      "branch": "20.0",
+      "revision": "f1e1e830150564cc87b4ddb1795dcd255c4aec1a",
+      "modules": ["web_responsive"],
+      "status": "available_not_integration_tested",
+      "note": "Master notifications now use native bus, replacing web_notify."
+    },
+    {
+      "repository": "https://github.com/OCA/contract",
+      "branch": "20.0",
+      "revision": "60b219ff5751ca1d02938627f65fb914cf94fbee",
+      "modules": ["contract"],
+      "status": "blocked_module_missing"
+    },
+    {
+      "repository": "https://github.com/OCA/server-auth",
+      "branch": "20.0",
+      "revision": "36ba374138eedad0597e90f20bbb523716b3c537",
+      "modules": ["auth_signup_verify_email"],
+      "status": "blocked_module_missing"
+    },
+    {
+      "repository": "https://github.com/itpp-labs/access-addons",
+      "branch": "20.0",
+      "revision": null,
+      "modules": ["auth_quick", "access_apps", "access_limit_max_users", "database_expiration", "database_limit_size"],
+      "status": "blocked_branch_missing"
+    }
+  ],
+  "python": [
+    {
+      "package": "openupgradelib",
+      "version": "3.13.7",
+      "wheel": "openupgradelib-3.13.7-py2.py3-none-any.whl",
+      "sha256": "86910f551cf949f062863eb1de3bf1582af77cd2b2bcc3031e1ee523c442e35c"
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 
 from odoo import fields, models
 import string
-import random
+import secrets
 
 LETTERS_FOR_PASSWORD = string.ascii_lowercase + string.digits + "_-"
 
@@ -56,12 +56,12 @@ class SaasDb(models.Model):
         else:
             vals["country_id"] = None
 
-        password = ''.join(random.choice(LETTERS_FOR_PASSWORD) for i in range(8))
+        password = ''.join(secrets.choice(LETTERS_FOR_PASSWORD) for i in range(24))
         vals["login"] = self.admin_user.login
         vals["name"] = self.admin_user.name
         vals["password"] = password
 
-        _, model, res_id = self.xmlid_lookup("base.user_admin")
+        model, res_id = self.xmlid_lookup("base.user_admin")
 
         self.execute_kw(model, "write", res_id, vals)
 

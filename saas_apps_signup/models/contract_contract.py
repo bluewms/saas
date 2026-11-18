@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
 from odoo import api, models, SUPERUSER_ID
+from odoo.exceptions import ValidationError
 import logging
 from ..exceptions import OperatorNotAvailable
 
@@ -19,12 +20,42 @@ class Contract(models.Model):
         create_build_vals = self.env.context.get("create_build_vals")
         if create_build_vals:
             for record in records:
-                record.with_user(SUPERUSER_ID).with_delay()._create_build(create_build_vals)
+                record.env['saas.db']._check_management_access()
+                # Use the server user for trusted elevated provisioning, only
+                # after the caller's management check has succeeded.
+                worker_record = record.with_user(SUPERUSER_ID) if record.env.su else record
+                worker_record.with_delay()._create_build(dict(create_build_vals))
 
         return records
 
     @api.model
     def _create_saas_contract_for_trial(self, build, max_users_limit, subscription_period, installing_modules=None, saas_template_id=None):
+        build.ensure_one()
+        build.check_access('read')
+        build.lock_for_update(allow_referencing=True)
+        build.invalidate_recordset(['contract_id', 'state'])
+        if build.type != 'build' or build.state != 'draft' or build.contract_id or not build.admin_user:
+            raise ValidationError(self.env._('Select an unassigned draft tenant database.'))
+        try:
+            max_users_limit = int(max_users_limit)
+        except (TypeError, ValueError):
+            raise ValidationError(self.env._('The user limit must be a positive whole number.'))
+        if max_users_limit < 1:
+            raise ValidationError(self.env._('The user limit must be a positive whole number.'))
+        installing_modules = sorted({name.strip() for name in (installing_modules or []) if name.strip()})
+        if installing_modules and saas_template_id:
+            raise ValidationError(self.env._('Choose apps or one package.'))
+        apps = self.env['saas.app'].search([('name', 'in', installing_modules), ('allow_to_sell', '=', True)])
+        if set(apps.mapped('name')) != set(installing_modules):
+            raise ValidationError(self.env._('One or more selected apps are not available for sale.'))
+        if saas_template_id:
+            template = self.env['saas.template'].browse(int(saas_template_id)).exists()
+            if not template or not template.is_package or not template.product_tmpl_id.website_published:
+                raise ValidationError(self.env._('The selected package is not available for sale.'))
+        else:
+            template = self.env.ref('saas_apps.base_template')
+        if not template.operator_ids.filtered(lambda row: row.state == 'done' and row.operator_id == build.operator_id):
+            raise OperatorNotAvailable(self.env._('No ready deployment is available on the selected operator.'))
         partner = build.admin_user.partner_id
         contract_lines = []
         contract_vals = {}
@@ -34,7 +65,7 @@ class Contract(models.Model):
         elif subscription_period == "year":
             subscription_period_suffix = "annually"
         else:
-            raise AssertionError("Incorrect value of subscription_period: {}".format(subscription_period))
+            raise ValidationError(self.env._('Choose a monthly or yearly subscription.'))
 
         expiration_date = self.env["saas.db"]._fields["expiration_date"].default(build)
         product_users = self.env.ref("saas_product.product_users_{}".format(subscription_period_suffix))
@@ -57,8 +88,7 @@ class Contract(models.Model):
         })
 
         if installing_modules:
-            contract_lines += self.env['saas.app']\
-                                  .search([("name", "in", installing_modules)])\
+            contract_lines += apps\
                                   .mapped("{}_product_id".format(subscription_period))\
                                   .mapped(lambda p: {
                                       "name": p.name,
@@ -91,12 +121,17 @@ class Contract(models.Model):
         }).create(contract_vals)
 
     def _create_build(self, build_vals):
+        self.env['saas.db']._check_management_access()
+        if set(build_vals) - {'expiration_date', 'max_users_limit', 'database_limit_size'}:
+            raise ValidationError(self.env._('Unsupported build provisioning values.'))
         for contract in self:
-            partner = self.partner_id
-            build = self.build_id
+            partner = contract.partner_id
+            build = contract.build_id
             if build:
-                assert build.state == "draft"
-                assert build.admin_user & partner.user_ids
+                if build.state == 'done' and build.contract_id == contract:
+                    continue
+                if build.state != 'draft' or not build.admin_user or build.admin_user.partner_id.commercial_partner_id != partner.commercial_partner_id:
+                    raise ValidationError(self.env._('The draft build does not belong to the contract customer.'))
             else:
                 # TODO: избавиться от этой фигни
                 build = self.env["saas.db"].search([
@@ -107,7 +142,7 @@ class Contract(models.Model):
 
             if not build:
                 _logger.warning("No draft build found for making contract")
-                return
+                continue
 
             contract_products = contract.contract_line_ids.mapped('product_id')
             contract_product_templates = contract_products.mapped('product_tmpl_id')
@@ -131,7 +166,7 @@ class Contract(models.Model):
                     repr(template.mapped("product_tmpl_id")),
                 ))
                 template = template[0]
-            template_operators = template.operator_ids
+            template_operators = template.operator_ids.filtered(lambda row: row.operator_id == build.operator_id)
             if not template_operators:
                 raise OperatorNotAvailable("No template operators in base template. Contact administrator")
 
@@ -139,10 +174,7 @@ class Contract(models.Model):
             if not template_operator:
                 raise OperatorNotAvailable("No template operators are ready. Try again later")
 
-            installing_modules_var = "[" + ",".join(map(
-                lambda item: '"{}"'.format(item.strip().replace('"', '')),
-                build_installing_modules
-            )) + "]"
+            installing_modules_var = repr(list(build_installing_modules))
 
             build.write(build_vals)
 
@@ -163,7 +195,7 @@ class Contract(models.Model):
             contract = invoice.contract_id
             build = contract.build_id
 
-            contract.invalidate_cache()
+            contract.invalidate_recordset()
             if build and build.state == "done":
                 invoice.action_post()
 
@@ -180,7 +212,16 @@ class ContractLine(models.Model):
         records = super(ContractLine, self).create(vals_list)
         for record, move_line_id in zip(records, move_line_ids):
             if move_line_id:
-                self.env["account.move.line"].sudo().browse(move_line_id).write({
+                move_line = self.env['account.move.line'].browse(move_line_id).exists()
+                move_line.ensure_one()
+                move_line.check_access('write')
+                if move_line.product_id != record.product_id or move_line.partner_id.commercial_partner_id != record.contract_id.partner_id.commercial_partner_id:
+                    raise ValidationError(self.env._('The invoice line does not belong to this contract.'))
+                if move_line.contract_line_id and move_line.contract_line_id != record:
+                    raise ValidationError(self.env._('The invoice line is already linked to another contract line.'))
+                if 'company_id' in record.contract_id._fields and move_line.company_id != record.contract_id.company_id:
+                    raise ValidationError(self.env._('The invoice line and contract must belong to the same company.'))
+                move_line.write({
                     "contract_line_id": record.id,
                 })
         return records

@@ -26,6 +26,7 @@ class SaasPeriodProductMixin(models.AbstractModel):
         for app in self:
             if not app.product_tmpl_id:
                 app.month_product_id = app.year_product_id = self.env["product.product"]
+                app.month_ptv = app.year_ptv = self.env['product.template.attribute.value']
                 continue
 
             line = self.env["product.template.attribute.line"].sudo().search([
@@ -51,7 +52,7 @@ class SaasPeriodProductMixin(models.AbstractModel):
             app.year_ptv = year_ptv
             app.year_product_id = year_ptv.ptav_product_variant_ids[:1]
 
-    @api.depends("product_tmpl_id.list_price", "month_ptv", "year_ptv")
+    @api.depends("product_tmpl_id.list_price", "month_ptv.price_extra", "year_ptv.price_extra")
     def _compute_prices(self):
         for app in self:
             app.month_price = app.product_tmpl_id.list_price + app.month_ptv.price_extra

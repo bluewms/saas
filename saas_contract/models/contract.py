@@ -20,13 +20,10 @@ class Contract(models.Model):
             contract2build[t["contract_id"][0]] = t["id"]
 
         for contract in self:
-            contract = contract
-            contract.write({
-                "build_id": contract2build.get(contract.id) or False,
-            })
+            contract.build_id = contract2build.get(contract.id) or False
 
     def _inverse_build(self):
-        Build = self.sudo().env["saas.db"]
+        Build = self.env["saas.db"]
         for contract in self:
             builds = Build.search([("contract_id", "=", contract.id)])
             (builds - contract.build_id).write({"contract_id": False})
@@ -44,7 +41,7 @@ class Contract(models.Model):
     ], "Build status", compute="_compute_build_status", store=False)
     trial_expiration_date = fields.Datetime("Trial expiration date", readonly=True)
 
-    @api.depends("build_id")
+    @api.depends('build_id', 'build_expiration_date_defacto', 'trial_expiration_date')
     def _compute_build_status(self):
         now = fields.Datetime.now()
         for record in self:
@@ -52,29 +49,24 @@ class Contract(models.Model):
                 record.build_status = False
                 continue
 
-            if record.trial_expiration_date:
+            expiration = record.build_expiration_date_defacto
+            if expiration and expiration <= now:
+                record.build_status = 'suspended'
+            elif record.trial_expiration_date:
                 if record.build_expiration_date_defacto and record.trial_expiration_date <= record.build_expiration_date_defacto:
                     record.build_status = "active"
                 else:
                     record.build_status = "trial"
-            elif now <= record.build_expiration_date_defacto:
+            elif not expiration or now <= expiration:
                 record.build_status = "active"
             else:
                 record.build_status = "suspended"
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        records = super(Contract, self).create(vals_list)
-        for res in records:
-            if res.build_id and res.line_recurrence:
-                raise ValidationError("Cannot create SaaS contract with enabled line-level recurrence")
-        return records
-
-    def write(self, vals):
-        res = super(Contract, self).write(vals)
-        if vals.get("line_recurrence") is False and self.mapped("build_id"):
-            raise ValidationError("Cannot set line recurrence from SaaS contract")
-        return res
+    @api.constrains('build_id', 'line_recurrence')
+    def _check_saas_line_recurrence(self):
+        for contract in self:
+            if contract.build_id and contract.line_recurrence:
+                raise ValidationError(self.env._('Cannot enable line-level recurrence on a SaaS contract.'))
 
 
 class ContractLine(models.Model):

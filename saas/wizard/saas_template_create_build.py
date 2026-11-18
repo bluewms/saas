@@ -1,6 +1,7 @@
 # Copyright 2019 Denis Mudarisov <https://it-projects.info/team/trojikman>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 from odoo import api, models, fields
+from odoo.exceptions import AccessError
 
 
 class CreateBuildByTemplate(models.TransientModel):
@@ -42,14 +43,19 @@ class CreateBuildByTemplate(models.TransientModel):
                     key_value_dict.update({r.key: r.value})
         return key_value_dict
 
-    @api.depends('template_id')
+    @api.depends('template_id.operator_ids')
     def _compute_count(self):
         for rec in self:
-            rec.template_operator_count = len(self.template_id.operator_ids)
+            rec.template_operator_count = len(rec.template_id.operator_ids)
 
     def create_build(self):
+        self.ensure_one()
+        self.check_access('read')
+        if not self.env.su and not self.env.user.has_group('saas.group_manager'):
+            raise AccessError(self.env._('Only SaaS managers can create builds with initialization values.'))
+        self.template_operator_id.check_access('read')
         key_value_dict = self._convert_to_dict(self.build_post_init_ids)
-        build = self.template_operator_id.sudo().create_db(key_value_dict, self.build_name)
+        build = self.template_operator_id.create_db(key_value_dict, self.build_name)
         return {
             'type': 'ir.actions.act_window',
             'name': 'SaaS DB',

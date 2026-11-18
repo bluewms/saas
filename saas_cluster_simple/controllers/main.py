@@ -5,6 +5,7 @@ import logging
 from odoo.exceptions import AccessError
 from odoo.http import route, Controller
 from odoo import tools
+from werkzeug.exceptions import NotFound
 
 from .. import main as cluster
 
@@ -28,8 +29,10 @@ def check_master_pwd(f):
 
 
 class OperatorController(Controller):
-    @route("/saas_operator/<string:method_name>", type="jsonrpc", auth="none")
+    @route("/saas_operator/<string:method_name>", type="jsonrpc", auth="none", methods=["POST"])
     @check_master_pwd
     def run_cluster_method(self, method_name, **kw):
+        if method_name not in cluster.__all__:
+            raise NotFound()
         method = getattr(cluster, method_name)
         return method(**kw)

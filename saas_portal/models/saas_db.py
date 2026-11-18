@@ -31,8 +31,10 @@ class SaasDb(models.Model):
 
     def _compute_number_of_queue_jobs_to_be_done(self):
         for record in self:
-            record.number_of_queue_jobs_to_be_done = self.env["queue.job"].search_count([
-                ("state", "in", ["started", "pending", "enqueued"]),
+            # Users may read their build without access to queue payloads. Only
+            # expose a count, scoped to this build's internally constructed domain.
+            record.number_of_queue_jobs_to_be_done = self.env["queue.job"].sudo().search_count([
+                ("state", "in", ["started", "pending", "enqueued", "wait_dependencies"]),
             ] + record._get_domain_of_queue_job_records())
 
     number_of_queue_jobs_to_be_done = fields.Integer(compute=_compute_number_of_queue_jobs_to_be_done, store=False)
@@ -70,6 +72,9 @@ class SaasDb(models.Model):
 
     def action_set_as_successor(self):
         self.ensure_one()
+        self._check_management_access()
+        if self.state != 'done' or not self.origin_build_id or self.operator_id != self.origin_build_id.operator_id:
+            raise UserError(self.env._('Choose a ready restored build on the same operator as its predecessor.'))
         if not self.is_temporary:
             raise UserError(_("This build is not marked as temporary"))
 

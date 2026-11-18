@@ -9,7 +9,7 @@
                 <button name="action_set_as_successor"
                         type="object"
                         string="Set as main"
-                        invisible="[('is_temporary', '=', False)]"
+                        invisible="not is_temporary"
                         />
             </xpath>
             <xpath expr="//group[@name='backup']" position="inside">

@@ -1,0 +1,112 @@
+# Odoo SaaS 检查与改进记录
+
+检查日期：2026-11-18。项目基线为 `20.0` 分支，提交 `529d71452dbb35bb879d7ca27f8c3d670a049d88`。对照的本机 Odoo 20 源码为 `31f9a80d59697bb47ae467b7bcce0c90d27d4033`；实际回归镜像报告版本为 `20.0-20260926`，PostgreSQL 为 16.0。
+
+使用阶段已确认：Odoo 20，开发／测试环境。
+
+## 结论
+
+项目提供了模板、实例、域名、备份、额度、订阅和门户的管理结构，但原实现存在租户越权、凭据暴露、旧版 API 和部署依赖缺口。此次已修复可以明确定位的问题，并增加隔离回归入口。完整的生产 SaaS 还需要客户插件迁移、真实付款与恢复演练，以及实例和数据库角色隔离。
+
+## 已修复的问题
+
+| 优先级 | 原问题与失败场景 | 改进位置与行为 |
+|---|---|---|
+| P0 | 具有读取权限的用户可尝试调用建库、删库、跨库超级用户执行等公开模型方法。删除权限还在物理删库之后检查。 | `saas/models/saas_db.py`、`saas_operator.py`：内部方法使用 `api.private`，对象操作先检查权限，删库前验证管理权限。 |
+| P0 | 客户库安装管理模块后，数据库内的管理组可能被用于调用 SaaS 操作。 | `saas/tools.py`：管理操作绑定服务器环境变量 `SAAS_MASTER_DATABASE`，非管理库的直接调用被拒绝。 |
+| P0 | 远程主密码可经模型读取；客户端主密码可能随 HTTP 重定向发送到其他地址。 | `saas_operator_remote`：密码字段仅系统管理员可读取，远程请求禁止重定向，并校验 URL。 |
+| P0 | 登录令牌可重复使用，未知令牌触发异常；令牌没有消费方校验，客户实例可能误用其他实例的令牌。 | `auth_quick_master`、`saas/models/auth_quick_master_token.py`：随机令牌、记录锁、单次消费、过期清理、租户与用户归属校验、客户端 `build` 引用校验。 |
+| P0 | 续费入口根据请求中的任意租户 ID 直接 `sudo()` 读取并创建账单。注册入口也信任请求中的购物车 ID。 | `saas_apps_signup/controllers`：核实登录用户和租户归属，购物车必须属于当前服务端会话，写操作通过有 CSRF 的 POST 执行。 |
+| P1 | 备份文件名可拼接到目录外；失败的备份可能留下可见的半成品；下划线库名恢复时被截断。 | `saas_cluster_simple/main.py`：目录约束、拒绝路径穿越和符号链接、私有临时文件、成功后原子发布、随机文件名、保留完整原库名前缀并控制新库名长度。 |
+| P1 | 只读 SaaS 用户能够创建或修改备份元数据，影响管理员后续恢复。 | `saas_backups`：元数据写入仅限管理操作，源库有备份记录时先阻止删除，未完成备份不允许恢复。 |
+| P1 | 域名文件在多进程写入时丢失其他映射，删除后的值继续留在缓存；旧解绑任务可能删掉恢复库的新映射。 | `host2db`、`saas_domain_names`：文件锁、原子写入、按文件签名刷新缓存，域名任务按数据库中当前归属重新同步。 |
+| P1 | 物理库创建后立即标记“就绪”，初始化、模块安装和配置同步尚未完成。 | `saas.db` 增加 `creating` 状态，任务链最后通过 `_finalize_build` 开放登录。 |
+| P1 | 请求安装的模块不存在时，被静默忽略，模板可能被误报为可用。 | `saas_cluster_simple.install_modules` 在安装前检查明确请求的模块是否存在并可安装。 |
+| P1 | `action_invoice_paid` 已不属于 Odoo 20 的付款回调；重复回调可能重复续期或创建合同。 | 使用 `_invoice_paid_hook`，每条发票服务记录应用标记并加记录锁；同一实例的一次订阅账单只延长一个周期。 |
+| P1 | 续期按固定 30/365 天计算，空到期日期比较会异常；合同禁止行级周期的判断方向错误。 | 使用日历月/年和 UTC 时间，处理空日期，使用约束阻止 SaaS 合同启用行级周期。 |
+| P1 | 迁移后的 `invisible`、`required` 等属性仍是列表，导致按钮和表单条件恒真。 | 修复相关视图为 Odoo 20 的布尔表达式；刷新按钮改为有权限检查的公开操作。 |
+| P1 | 新建套餐未生成销售产品；应用依赖遍历可能重复；可提交其他产品 ID 或错误周期进入购物车。 | `saas_apps`：创建时生成套餐产品和价格、限制产品选择、遍历去重，修复计算字段依赖和多记录统计。 |
+| P2 | `web_notify` 的 20.0 模块不在依赖分支中，旧通知接口不可用。 | 使用 Odoo 原生 `bus` 通知，移除管理端对 `web_notify` 的依赖。 |
+| P2 | 旧 `checkout_redirection` 不再被 Odoo 20 调用，可能付款后未关联实例。 | 使用 `shop_checkout` 和 `_is_cart_ready_for_payment`，通过 POST 关联本人草稿实例后再进入支付。 |
+| P2 | 旧 `_search` 返回对象、三元素 XMLID 解包、钩子签名等与 Odoo 20 不符。 | 修复 `.search(...).ids`、两元素 XMLID、模块初始化钩子、测试断言、配置同步接口。 |
+
+## 仍需完成的生产工作
+
+1. **补齐外部插件。** 已核实的仓库与提交见 [依赖锁](../dependencies.lock.json)。`contract` 和 `auth_signup_verify_email` 的 20.0 分支没有对应模块；`access-addons` 没有 20.0 分支。因此，完整注册、付款开通、限额和客户实例登录还不能认定已验证。
+2. **隔离客户实例。** 同进程 `Local` 方案共享运行时和数据库连接能力，不适合把不受信任的租户管理员作为生产用户。生产应采用独立 Odoo 进程或容器、独立 filestore、独立 PostgreSQL 角色，管理接口经受控网络和 HTTPS 访问。`Remote` 只是通信方式，仍需要部署层完成隔离。
+3. **验证账单业务规则。** 明确历史已付账单、试用、折扣续费、退款、用户数变更和按比例计费规则。新服务应用标记不能自动推断历史账单是否已经兑现，升级前需核对和回填，避免补发或漏发权益。
+4. **完善故障恢复。** 建库、远程配置和发信不在管理库同一事务中，需要持久化操作身份、幂等恢复、失败告警和可恢复的状态机。当前不会按一个未登记的名字盲目删库；遗留孤儿库应先核实所属实例。
+5. **运维与容量。** 补充备份保留、异地备份、真实恢复演练、任务失败与积压监控、租户资源配额、试用申请的账号/IP 限流。备份元数据删除与文件保留政策也需要明确。
+6. **公司与税务配置。** 管理模型尚无完整的多公司租户隔离规则；SaaS 产品仍沿用原项目的默认零税设置，需按实际经营主体和税制配置。
+
+## 升级要求
+
+必须先备份管理库、相关客户库和 filestore，再在测试环境升级本次改动的模块。新的字段、约束、权限和视图需要模块升级，单纯重启不能替代升级。
+
+管理服务必须设置不可由客户库修改的服务器环境变量：
+
+```sh
+SAAS_MASTER_DATABASE=实际管理数据库名
+```
+
+它必须与管理库的技术名称一致。请在服务配置或 Compose 的 `environment` 中设置，不能用 `ir.config_parameter` 代替。未配置时，管理动作会被拒绝。
+
+客户 `auth_quick` 插件必须同步更新。服务端验证令牌时，发送客户实例配置中的 `auth_quick.build`，不能采信浏览器传入的实例 ID：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "call",
+  "id": 1,
+  "params": {"token": "一次性令牌", "build": "客户实例的 auth_quick.build"}
+}
+```
+
+成功响应的 `data.build` 也应与本实例配置一致。缺少或不匹配的引用会被拒绝；同一令牌只能成功使用一次。旧客户端需要配套迁移，不能仅升级管理端后就假定 SSO 可用。
+
+原来发起建库、续费、登录的 GET 链接会展示确认表单，实际写操作通过带 CSRF 的 POST 完成。同步调用模板创建接口时，完整初始化后才返回就绪状态；直接调用内部建库方法的扩展应遵循最终初始化步骤。
+
+升级前还需检查：同一 operator 下是否存在重复库名、同一合同是否被多个实例关联，以及域名记录是否与所在 operator 一致。新增约束不能替代已有数据整理。
+
+## 验证入口与边界
+
+| 检查 | 最终结果 |
+|---|---|
+| 基础隔离回归：令牌、CSRF、备份与域名文件 | 20 项，0 失败、0 错误 |
+| 管理端隔离回归：权限、管理库绑定、令牌消费方、任务统计、接管域名、应用和订阅周期 | 20 项，0 失败、0 错误 |
+| 23 个模块的 Python、XML、清单、资源路径和权限格式 | 通过 |
+| 注册前端 JavaScript 语法、依赖锁 JSON、差异空白检查 | 通过 |
+| 完整付款开通、合同与邮箱验证插件、客户实例和真实数据恢复 | 尚未完成，受外部插件迁移与实际部署环境限制 |
+
+队列统计已兼容 OCA 20 的 JSON 记录集存储，兼容字段只提供记录 ID，并从遵循 ORM 权限的查询构造条件；不会通过门户暴露任务参数。基础回归包含 Odoo 自动运行的 2 项 Web 框架测试。
+
+基础检查：
+
+```sh
+python3 scripts/check_addons.py
+python3 scripts/check_addons.py --addons-path /path/to/odoo/addons,/path/to/extra-addons --strict-dependencies
+```
+
+基础隔离回归：
+
+```sh
+docker compose -p saas-review -f compose.test.yaml run --rm odoo
+```
+
+管理端回归需准备锁定的 OCA queue 和 Python 依赖目录：
+
+```sh
+SAAS_QUEUE_ADDONS=/path/to/queue \
+SAAS_PYTHON_DEPS=/path/to/python-deps \
+docker compose -p saas-review -f compose.test.yaml -f compose.core.test.yaml run --rm odoo
+```
+
+测试配置显式执行安装和升级，确保重复运行时仍会收集测试。测试项目使用独立网络和临时 PostgreSQL 数据，未公布宿主机端口。运行结束后可关闭该测试项目：
+
+```sh
+docker compose -p saas-review -f compose.test.yaml down --volumes
+```
+
+备份测试覆盖路径、原子发布、失败清理和恢复命名；实际 `dump`/`restore` 被替代，不代表已完成真实数据恢复演练。管理端测试使用真实 Odoo ORM、权限、HTTP 和 OCA queue；客户建库、付款网关、OCA 合同插件和邮箱验证插件的完整集成仍待依赖迁移后验证。
+
+Guidelines read: odoo-guidelines 的 Python、ORM、Fields、Controllers、Security、Tests、Stable、Manifest、Module structure、Comments、Performance、XML；odoo-security 全部检查项；odoo-web-guidelines 的 JavaScript、Assets。

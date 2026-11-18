@@ -8,16 +8,16 @@
         <field name="inherit_id" ref="contract.contract_contract_form_view" />
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <field name="build_status" invisible="[('build_id', '=', False)]" widget="statusbar"/>
+                <field name="build_status" invisible="not build_id" widget="statusbar"/>
             </xpath>
             <xpath expr="//field[@name='line_recurrence']" position="attributes">
                 <attribute name="attrs">{"readonly": [('build_id', '!=', False)]}</attribute>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
-                <field name="build_id" invisible="[('build_id', '=', False)]"/>
+                <field name="build_id" invisible="not build_id"/>
             </xpath>
             <xpath expr="//field[@name='date_end']" position="after">
-                <field name="build_expiration_date_defacto" invisible="[('build_id', '=', False)]"/>
+                <field name="build_expiration_date_defacto" invisible="not build_id"/>
             </xpath>
 
             <xpath expr="//field[@name='contract_line_ids']/tree/field[@name='last_date_invoiced']" position="after">

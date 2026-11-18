@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
 from odoo import api, models, fields
+from odoo.exceptions import ValidationError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ class SaasDb(models.Model):
 
     _inherit = 'saas.db'
 
-    database_limit_size = fields.Float(default=lambda self: self.env["ir.config_parameter"].get_float("saas_apps_signup.database_limit_size_default", 0.0))
+    database_limit_size = fields.Float(default=lambda self: self.env["ir.config_parameter"].sudo().get_float("saas_apps_signup.database_limit_size_default", 0.0))
     is_admin_user_language_installed = fields.Boolean("Is admin user's language installed?")
 
     def _get_domain_of_queue_job_records(self):
@@ -24,12 +25,12 @@ class SaasDb(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
 
-        if not self.env.user.has_group("saas.group_manager"):
-            if self.env['saas.db']._search([
+        if not self.env.su and not self.env.user.has_group("saas.group_manager"):
+            if self.env['saas.db'].search_count([
                 ("state", "=", "draft"),
                 ("admin_user", "=", self.env.user.id),
             ], limit=1):
-                raise Exception("You cannot create more than one draft database")
+                raise ValidationError(self.env._('You cannot create more than one draft database.'))
 
         return super(SaasDb, self).create(vals_list)
 
@@ -61,7 +62,7 @@ class SaasDb(models.Model):
                     # TODO: check if result is successfull1
                     self.execute_kw("base.language.install", "lang_install", wizard_id)
 
-                    _, model, res_id = self.xmlid_lookup("base.user_admin")
+                    model, res_id = self.xmlid_lookup("base.user_admin")
 
                     self.execute_kw(model, "write", [res_id], {"lang": self.admin_user.database_lang})
 
@@ -104,6 +105,6 @@ class SaasDb(models.Model):
     def _prepare_successor_build_vals(self, predecessor_build):
         res = super(SaasDb, self)._prepare_successor_build_vals(predecessor_build)
         res.update(
-            contract_id=predecessor_build.contract_id,
+            contract_id=predecessor_build.contract_id.id,
         )
         return res

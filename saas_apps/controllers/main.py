@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
 from odoo.http import route, request, Controller
+from odoo.exceptions import ValidationError
 from odoo.addons.website_sale.controllers.main import WebsiteSale
 
 
@@ -85,25 +86,39 @@ class SaasAppsCart(WebsiteSale):
         csrf=False,
     )
     def cart_update_price_page(self, **kw):
-        self.clear_cart()
         period = kw.get("period")
-        sale_order = request.cart or request.env.website._create_cart()
         # Adding user as product in cart
         if period == "month":
             user_product = request.env.ref("saas_product.product_users_monthly")
         elif period == "year":
             user_product = request.env.ref("saas_product.product_users_annually")
         else:
-            raise NotImplementedError(
-                "No 'Users' product for period '{}'".format(period)
-            )
+            raise ValidationError(request.env._('Choose a monthly or yearly subscription.'))
 
-        user_cnt = int(kw.get("user_cnt"))
+        try:
+            user_cnt = int(kw.get('user_cnt'))
+            product_ids = {int(value) for value in kw.get('product_ids', [])}
+        except (TypeError, ValueError):
+            raise ValidationError(request.env._('Choose a valid user quantity and product selection.'))
+        if not 1 <= user_cnt <= 2147483647:
+            raise ValidationError(request.env._('The user quantity must be a positive whole number.'))
+        apps = request.env['saas.app'].sudo().search([('allow_to_sell', '=', True)])
+        packages = request.env['saas.template'].sudo().search([
+            ('is_package', '=', True), ('product_tmpl_id.website_published', '=', True),
+        ])
+        allowed = apps.mapped(period + '_product_id') | packages.mapped(period + '_product_id')
+        allowed = allowed.filtered(lambda product: not product.company_id or product.company_id == request.env.website.company_id)
+        if product_ids - set(allowed.ids):
+            raise ValidationError(request.env._('One or more selected products are not available for this subscription period.'))
+        if len(product_ids & set(packages.mapped(period + '_product_id').ids)) > 1:
+            raise ValidationError(request.env._('Choose one SaaS package per order.'))
+        self.clear_cart()
+        sale_order = request.cart or request.env.website._create_cart()
         sale_order.with_context(skip_cart_verification=True)._cart_add(
             product_id=int(user_product.id), quantity=user_cnt
         )
 
-        for product_id in kw.get("product_ids", []):
+        for product_id in sorted(product_ids):
             sale_order.with_context(skip_cart_verification=True)._cart_add(
                 product_id=int(product_id), quantity=1
             )

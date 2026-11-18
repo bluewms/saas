@@ -2,7 +2,7 @@
 # License MIT (https://opensource.org/licenses/MIT).
 
 from odoo import api, fields, models
-from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 
 
 class ProductTemplate(models.Model):
@@ -29,8 +29,8 @@ class Product(models.Model):
         self.ensure_one()
         self = self.sudo()
         if self == self.env.ref("saas_product.product_users_annually"):
-            return timedelta(days=365)
+            return relativedelta(years=1)
         elif self == self.env.ref("saas_product.product_users_monthly"):
-            return timedelta(days=30)
+            return relativedelta(months=1)
         else:
             raise NotImplementedError
