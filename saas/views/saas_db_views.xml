@@ -33,10 +33,7 @@
                         <field name="operator_id" options="{'no_create': 1}"/>
                     </group>
                 </sheet>
-                <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
-                    <field name="message_ids" options="{'post_refresh': 'recipients'}"/>
-                </div>
+                <chatter/>
             </form>
         </field>
     </record>
