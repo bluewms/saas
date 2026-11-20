@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2020 Eugene Molotov <https://it-projects.info/team/em230418>
+     License MIT (https://opensource.org/licenses/MIT). -->
+<odoo>
+    <template id="webclient_notice" inherit_id="web.webclient_bootstrap">
+        <xpath expr="//t[@t-set='head']" position="before">
+            <t t-set="database_notice" t-value="session_info.get('database_block_notice')"/>
+        </xpath>
+        <xpath expr="//t[@t-set='head']" position="attributes">
+            <attribute name="t-if">not database_notice or database_notice['warning']</attribute>
+        </xpath>
+        <xpath expr="//t[@t-call='web.layout']" position="inside">
+            <div t-if="database_notice" t-att-class="'alert alert-warning mb-0' if database_notice['warning'] else 'alert alert-danger m-3'"
+                 role="alert">
+                <span t-out="database_notice['message']"/>
+                <a t-if="database_notice['url']" t-att-href="database_notice['url']" class="alert-link ms-2"
+                   t-out="database_notice['label']"/>
+            </div>
+        </xpath>
+    </template>
+</odoo>

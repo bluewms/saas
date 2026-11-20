@@ -1,0 +1,12 @@
+<odoo>
+    <record id="view_view_form" model="ir.ui.view">
+        <field name="name">ir.access.form.protected</field>
+        <field name="model">ir.access</field>
+        <field name="inherit_id" ref="base.ir_access_form_view"/>
+        <field name="arch" type="xml">
+            <field name="model_id" position="after">
+                <field name="protected"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,16 +1,20 @@
-当前分支面向 Odoo 20。检查结论、已修复问题、生产部署缺口、登录客户端配套变更和升级步骤见 [SaaS 检查与改进记录](docs/saas-review.md)，外部依赖提交与可用状态见 [dependencies.lock.json](dependencies.lock.json)。
+# BlueWMS SaaS
 
-运行管理服务前设置服务器环境变量 `SAAS_MASTER_DATABASE` 为实际管理数据库名。客户登录插件需在令牌验证请求中发送其服务器端保存的 `auth_quick.build` 引用。完整 SaaS 仍需要对应的 Odoo 20 合同、邮箱验证和客户插件，管理端回归通过不能替代完整开通与恢复演练。
+Odoo 20 SaaS 管理端、租户扩展和本地开发环境。
 
-本地开发使用 [SaaS 双实例环境](docs/dev-environment.md)，分别登录管理端和客户库。
+| 目录 | 用途 |
+| --- | --- |
+| [saas-addons](saas-addons) | 管理端模块、Docker Compose 和验收文档。最初来自 [bluewms/saas-addons](https://github.com/bluewms/saas-addons)。 |
+| [access-addons](access-addons) | 租户登录、权限和配额扩展。 |
+| [oca-queue](oca-queue) | OCA 作业队列。 |
+| [oca-web](oca-web) | 依赖锁指定的 OCA Web 源码快照。 |
+| [oca-contract](oca-contract) | 合同模块和 Odoo 20 适配。 |
+| [oca-server-auth](oca-server-auth) | 注册邮件验证和 Odoo 20 适配。 |
 
-# SaaS addons
+从仓库根目录启动本地环境。
 
-System to sale and manage odoo databases.
+```sh
+./saas-addons/scripts/saas-dev.sh init
+```
 
-The repository contains modules for master instance (old name: *SaaS Portal*). Other resources of the project:
-
-* https://saas.it-projects.info -- main website
-* https://gitlab.com/itpp/saas-clusters -- modules for multi-server deployment
-* https://github.com/itpp-labs/access-addons -- useful modules for client instances (*SaaS Client*)
-* https://github.com/it-projects-llc/odoo-saas-tools -- abandoned original repository
+各目录保留原有许可证。依赖来源及提交见[依赖锁](saas-addons/dependencies.lock.json)。自助开通配置、端口和本地隔离环境见[开发环境说明](saas-addons/docs/dev-environment.md)。
