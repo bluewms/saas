@@ -11,7 +11,7 @@
                 <field name="build_status" invisible="not build_id" widget="statusbar"/>
             </xpath>
             <xpath expr="//field[@name='line_recurrence']" position="attributes">
-                <attribute name="attrs">{"readonly": [('build_id', '!=', False)]}</attribute>
+                <attribute name="readonly" add="build_id" separator=" or "/>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
                 <field name="build_id" invisible="not build_id"/>
@@ -20,8 +20,8 @@
                 <field name="build_expiration_date_defacto" invisible="not build_id"/>
             </xpath>
 
-            <xpath expr="//field[@name='contract_line_ids']/tree/field[@name='last_date_invoiced']" position="after">
-                <field name="build_id" invisible="1" />
+            <xpath expr="//field[@name='contract_line_ids']/list/field[@name='last_date_invoiced']" position="after">
+                <field name="build_id" column_invisible="True" />
             </xpath>
         </field>
     </record>

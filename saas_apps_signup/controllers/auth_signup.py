@@ -26,6 +26,11 @@ _logger = logging.getLogger(__name__)
 
 
 class Main(SignupVerifyEmail):
+    def _prepare_passwordless_signup_values(self, qcontext):
+        values = super()._prepare_passwordless_signup_values(qcontext)
+        values.update({key: qcontext[key] for key in EXTRA_SIGN_UP_REQUEST_PARAMS if key in qcontext})
+        return values
+
     def get_auth_signup_qcontext(self):
         d = {k: v for (k, v) in request.params.items() if k in EXTRA_SIGN_UP_REQUEST_PARAMS}
         d.update(super(Main, self).get_auth_signup_qcontext())

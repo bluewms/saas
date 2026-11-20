@@ -40,7 +40,7 @@ COMPOSE_PROJECT_NAME=saas-lifecycle SAAS_DEV_MASTER_PORT=8172 SAAS_DEV_CLIENT_PO
 | 单点登录、应用权限和用户数 | `auth_quick`、`access_apps`、`access_limit_max_users` |
 | 到期、容量和客户后台 | `database_expiration`、`database_limit_size`、`web_responsive` |
 | 上述客户功能的间接依赖 | `access_restricted`、`ir_rule_protected`、`access_limit_records_number`、`database_block`，以及 Odoo 自带 `base_automation`、`web_tour` 和 `mail` |
-| 网站注册与付款开通 | 管理端的 `saas_apps_signup` 和 `saas_contract` 还需要适配 Odoo 20 的 `auth_signup_verify_email` 和 `contract` |
+| 网站注册与付款开通 | 管理端的 `saas_apps_signup` 和 `saas_contract`，以及 `../oca-server-auth` 和 `../oca-contract` 中已适配的 OCA 模块 |
 
 本地远程 Operator 使用 Docker 服务地址 `http://client:8069`。模板库安装作业失败后，补齐依赖并重启客户端，再在管理端重新排队原安装作业即可复用已建好的模板库。
 
@@ -49,6 +49,22 @@ COMPOSE_PROJECT_NAME=saas-lifecycle SAAS_DEV_MASTER_PORT=8172 SAAS_DEV_CLIENT_PO
 将本地客户 Operator 的 **DB URLs** 设为 `http://{db_name}.localhost:8073`。为要登录的构建添加同名本地域名，例如给 `testa` 分配 `testa.localhost`。域名记录只填写主机名。保存后，队列会把映射写进客户 Odoo 的持久卷，重启后可继续使用。
 
 在就绪构建中点击 **连接到构建**，依次确认管理端授权和客户库登录。默认客户库仍使用 `http://localhost:8073`。单点登录的服务器间令牌验证使用管理端 Docker 地址 `http://master:8069`。
+
+恢复库可以绑定一个独立的本地域名，例如 `testa-restored.localhost`。登录会使用构建已绑定的域名，并沿用 Operator URL 的协议和端口。验收时可用源库的一条 CRM 记录和一个附件逐项比对。
+
+## 自助注册与付款测试
+
+准备 [依赖锁](../dependencies.lock.json) 指定的 OCA 本地提交，并在独立数据卷上启用自助开通配置。
+
+```sh
+export SAAS_DEV_COMMERCE=1 COMPOSE_PROJECT_NAME=saas-commerce
+export SAAS_DEV_MASTER_PORT=8272 SAAS_DEV_CLIENT_PORT=8273
+./scripts/saas-dev.sh init
+```
+
+该环境的管理端在 `http://127.0.0.1:8272`，客户侧在 `http://localhost:8273`。为技术模板 `Base` 在远程客户 Operator 上添加部署，等待「就绪」，再配置要售卖的应用或套餐。开发测试使用仅在 Docker 内网监听的邮件捕获器。邮箱令牌确认成功后，才建立客户公司并提交试用建库或绑定已验证的购物车。
+
+付款验收使用独立账套。配置测试会计科目、收款日记账和销售自动开票。实际入账后核对租户、合同及已应用标记。重复处理同一笔已付发票时，租户开通和续期各只生效一次。
 
 ## 日常启动与停止
 

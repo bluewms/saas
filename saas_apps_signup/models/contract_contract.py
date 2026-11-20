@@ -212,16 +212,17 @@ class ContractLine(models.Model):
         records = super(ContractLine, self).create(vals_list)
         for record, move_line_id in zip(records, move_line_ids):
             if move_line_id:
-                move_line = self.env['account.move.line'].browse(move_line_id).exists()
-                move_line.ensure_one()
-                move_line.check_access('write')
-                if move_line.product_id != record.product_id or move_line.partner_id.commercial_partner_id != record.contract_id.partner_id.commercial_partner_id:
-                    raise ValidationError(self.env._('The invoice line does not belong to this contract.'))
-                if move_line.contract_line_id and move_line.contract_line_id != record:
-                    raise ValidationError(self.env._('The invoice line is already linked to another contract line.'))
-                if 'company_id' in record.contract_id._fields and move_line.company_id != record.contract_id.company_id:
-                    raise ValidationError(self.env._('The invoice line and contract must belong to the same company.'))
-                move_line.write({
-                    "contract_line_id": record.id,
-                })
+                record._link_saas_invoice_line(self.env['account.move.line'].browse(move_line_id).exists())
         return records
+
+    def _link_saas_invoice_line(self, move_line):
+        self.ensure_one()
+        move_line.ensure_one()
+        move_line.check_access('write')
+        if move_line.product_id != self.product_id or move_line.partner_id.commercial_partner_id != self.contract_id.partner_id.commercial_partner_id:
+            raise ValidationError(self.env._('The invoice line does not belong to this contract.'))
+        if move_line.contract_line_id and move_line.contract_line_id != self:
+            raise ValidationError(self.env._('The invoice line is already linked to another contract line.'))
+        if move_line.company_id != self.contract_id.company_id:
+            raise ValidationError(self.env._('The invoice line and contract must belong to the same company.'))
+        move_line.contract_line_id = self

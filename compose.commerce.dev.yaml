@@ -1,0 +1,7 @@
+services:
+  master:
+    environment:
+      ODOO_ADDONS_PATH: /mnt/extra-addons,/mnt/queue-addons,/mnt/oca-contract,/mnt/oca-server-auth
+    volumes:
+      - ${SAAS_CONTRACT_ADDONS:-../oca-contract}:/mnt/oca-contract:ro
+      - ${SAAS_SERVER_AUTH_ADDONS:-../oca-server-auth}:/mnt/oca-server-auth:ro

@@ -1,6 +1,8 @@
+from collections import defaultdict
+from urllib.parse import urlsplit
+
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
-from collections import defaultdict
 
 
 class SaasDb(models.Model):
@@ -14,6 +16,15 @@ class SaasDb(models.Model):
         "unique(domain_name_id)",
         "Cannot assign same domain to multiple builds",
     )
+
+    def get_url(self):
+        url = super().get_url()
+        domain = self.sudo().domain_name_id.name
+        if not domain:
+            return url
+        parsed = urlsplit(url)
+        host = f'{domain}:{parsed.port}' if parsed.port is not None else domain
+        return parsed._replace(netloc=host).geturl()
 
     @api.constrains('domain_name_id', 'operator_id')
     def _check_domain_operator(self):

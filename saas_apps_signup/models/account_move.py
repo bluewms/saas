@@ -49,23 +49,26 @@ class AccountMove(models.Model):
                     'product_id': line.product_id.id,
                     'price_unit': line.price_unit,
                     'quantity': line.quantity,
-                    'move_line_id': line.id,
                     'uom_id': line.product_uom_id.id,
                 } for line in lines]
                 expiration_date = fields.Datetime.now() + plan_lines[0].product_id._get_expiration_timedelta()
                 # The paid invoice and its sales order identify this one build.
                 # Provisioning runs with operator rights, never request values.
-                self.env['contract.contract'].sudo().with_context(create_build_vals={
+                contract = self.env['contract.contract'].sudo().with_context(create_build_vals={
                     'expiration_date': expiration_date, 'max_users_limit': int(quantity),
                 }).create({
                     'name': self.env._("%s's SaaS Contract", order.partner_id.name),
                     'partner_id': order.partner_id.id,
                     'company_id': order.company_id.id,
-                    'contract_line_ids': [(0, 0, vals) for vals in contract_lines],
+                    'contract_line_fixed_ids': [(0, 0, vals) for vals in contract_lines],
                     'line_recurrence': False,
                     'build_id': build.id,
                     'recurring_rule_type': period + 'ly',
                     'recurring_interval': 1,
                 })
+                # OCA checks whether recurrence is changing on a contract
+                # that already has invoices, so link the paid lines after creation.
+                for contract_line, invoice_line in zip(contract.contract_line_ids.sorted('id'), lines, strict=True):
+                    contract_line._link_saas_invoice_line(invoice_line.sudo())
                 plan_lines.sudo().write({'saas_service_applied': True})
         return result

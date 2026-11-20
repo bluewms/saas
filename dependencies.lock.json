@@ -26,17 +26,23 @@
     },
     {
       "repository": "https://github.com/OCA/contract",
-      "branch": "20.0",
-      "revision": "60b219ff5751ca1d02938627f65fb914cf94fbee",
+      "branch": "19.0",
+      "revision": "ad50ff2448eff2ef831134c2e252a156cf7f0fc2",
       "modules": ["contract"],
-      "status": "blocked_module_missing"
+      "status": "local_odoo20_port",
+      "local_path": "../oca-contract",
+      "local_branch": "odoo20-saas",
+      "local_revision": "2fcba51545774ec1be81d3c3e5916111509ddc7a"
     },
     {
       "repository": "https://github.com/OCA/server-auth",
-      "branch": "20.0",
-      "revision": "36ba374138eedad0597e90f20bbb523716b3c537",
+      "branch": "18.0",
+      "revision": "23df47b5f56e55d13b8afe1f8a3e6915cc7b4ecc",
       "modules": ["auth_signup_verify_email"],
-      "status": "blocked_module_missing"
+      "status": "local_odoo20_port",
+      "local_path": "../oca-server-auth",
+      "local_branch": "odoo20-saas",
+      "local_revision": "2779431c979b401c50704557a1b137e60f4f5fb4"
     },
     {
       "repository": "https://github.com/itpp-labs/access-addons",
@@ -65,6 +71,20 @@
       "version": "3.13.7",
       "wheel": "openupgradelib-3.13.7-py2.py3-none-any.whl",
       "sha256": "86910f551cf949f062863eb1de3bf1582af77cd2b2bcc3031e1ee523c442e35c"
+    },
+    {
+      "package": "email-validator",
+      "version": "2.3.0",
+      "wheel": "email_validator-2.3.0-py3-none-any.whl",
+      "sha256": "80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4",
+      "commerce": true
+    },
+    {
+      "package": "dnspython",
+      "version": "2.7.0",
+      "wheel": "dnspython-2.7.0-py3-none-any.whl",
+      "sha256": "b4c34b7d10b51bcc3a5071e7b8dee77939f1e878477eeecc965e9835f63c6c86",
+      "commerce": true
     }
   ]
 }
