@@ -2,10 +2,10 @@
 # Copyright 2019 Denis Mudarisov <https://it-projects.info/team/trojikman>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-import odoo
-from odoo.http import route, request
-from odoo.addons.auth_quick_master.tools.build_redirection import build_redirection
 from werkzeug.exceptions import Forbidden, NotFound
+
+import odoo
+from odoo.http import request, route
 
 
 class SaasController(odoo.http.Controller):
@@ -21,6 +21,4 @@ class SaasController(odoo.http.Controller):
             raise Forbidden()
         if build.type != 'build' or build.state != 'done':
             raise NotFound()
-        _, build_admin_id = build.sudo().xmlid_lookup("base.user_admin")
-        build_url = build.get_url() + '/auth_quick/login?build_user_id={}'.format(build_admin_id)
-        return build_redirection(build_url)
+        return request.redirect_query('/auth_quick_master/get-token', {'build': build.id})

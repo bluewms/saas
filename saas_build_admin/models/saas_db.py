@@ -1,9 +1,11 @@
 # Copyright 2020 Eugene Molotov <https://it-projects.info/team/em230418>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import fields, models
-import string
 import secrets
+import string
+
+from odoo import fields, models
+from odoo.exceptions import UserError
 
 LETTERS_FOR_PASSWORD = string.ascii_lowercase + string.digits + "_-"
 
@@ -26,26 +28,11 @@ class SaasDb(models.Model):
         if self.is_admin_user_updated_on_build or not self.admin_user:
             return
 
-        is_admin_language_installed = bool(self.admin_user.lang) and bool(
-            self.execute_kw(
-                "res.lang",
-                "search_read",
-                [("code", "=", self.admin_user.lang)],
-                ["code"],
-            )
-        )
-        if not is_admin_language_installed:
-            lang_install_id = self.execute_kw(
-                "base.language.install", "create", {"lang": self.admin_user.lang, "overwrite": False}
-            )
-            self.execute_kw("base.language.install", "lang_install", lang_install_id)
+        lang = self.admin_user.lang or "en_US"
+        if not self.execute_kw("res.lang", "_activate_and_install_lang", lang):
+            raise UserError(self.env._("Language %s is not available in the tenant database.", lang))
 
-        vals = {}
-
-        if self.admin_user.lang:
-            vals["lang"] = self.admin_user.lang
-        else:
-            vals["lang"] = "en_US"
+        vals = {"lang": lang}
 
         if self.admin_user.country_id:
             res = self.execute_kw(
@@ -63,9 +50,9 @@ class SaasDb(models.Model):
 
         model, res_id = self.xmlid_lookup("base.user_admin")
 
+        if self.admin_user.email:
+            template = self.env.ref("saas_build_admin.template_build_admin_is_set")
+            template.with_context(build=self, build_admin_password=password).send_mail(self.admin_user.id)
+
         self.execute_kw(model, "write", res_id, vals)
-
-        template = self.env.ref("saas_build_admin.template_build_admin_is_set")
-        template.with_context(build=self, build_admin_password=password).send_mail(self.admin_user.id, force_send=True, raise_exception=True)
-
         self.is_admin_user_updated_on_build = True

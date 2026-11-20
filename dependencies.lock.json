@@ -1,7 +1,12 @@
 {
   "schema_version": 1,
   "odoo_major": "20.0",
-  "checked_at": "2026-11-18",
+  "checked_at": "2026-11-20",
+  "images": {
+    "architecture": "arm64",
+    "odoo": "odoo@sha256:cdd83e8359b3e8c357895d476396c05021fed9975bf420f353bab25fcaed1533",
+    "postgres": "postgres@sha256:a80d0c1b119cf3d6bab27f72782f16e47ab8534ced937fa813ec2ab26e1fd81e"
+  },
   "repositories": [
     {
       "repository": "https://github.com/OCA/queue",
@@ -15,8 +20,9 @@
       "branch": "20.0",
       "revision": "f1e1e830150564cc87b4ddb1795dcd255c4aec1a",
       "modules": ["web_responsive"],
-      "status": "available_not_integration_tested",
-      "note": "Master notifications now use native bus, replacing web_notify."
+      "status": "installed_in_local_template",
+      "local_path": "../oca-web",
+      "note": "Installed on the Odoo 20 client. Master notifications use native bus."
     },
     {
       "repository": "https://github.com/OCA/contract",
@@ -34,10 +40,23 @@
     },
     {
       "repository": "https://github.com/itpp-labs/access-addons",
-      "branch": "20.0",
-      "revision": null,
-      "modules": ["auth_quick", "access_apps", "access_limit_max_users", "database_expiration", "database_limit_size"],
-      "status": "blocked_branch_missing"
+      "branch": "17.0",
+      "revision": "d08a898270ef7a47714a68aded770c1ee332a3d7",
+      "modules": ["access_apps", "access_restricted", "ir_rule_protected"],
+      "status": "local_odoo20_port",
+      "local_path": "../access-addons",
+      "local_branch": "odoo20-client",
+      "local_revision": "04bc916137daafd9aab6e6e30d07f5e937c59833"
+    },
+    {
+      "repository": "https://github.com/itpp-labs/access-addons",
+      "branch": "14.0",
+      "revision": "8e9f87941e6ad9b42c78b6677634037a00a045fb",
+      "modules": ["auth_quick", "access_limit_max_users", "access_limit_records_number", "database_block", "database_expiration", "database_limit_size"],
+      "status": "local_odoo20_port",
+      "local_path": "../access-addons",
+      "local_branch": "odoo20-client",
+      "local_revision": "04bc916137daafd9aab6e6e30d07f5e937c59833"
     }
   ],
   "python": [

@@ -282,10 +282,13 @@ class SAASOperator(models.Model):
     @api.private
     def notify_users(self, message, title=None, message_type=None):
         manager_users = self.env.ref("saas.group_manager").user_ids
-        manager_users._bus_send('simple_notification', {
-            'message': message, 'title': title, 'sticky': True,
+        notification = {
+            'message': message, 'sticky': True,
             'type': 'success' if message_type == 'success' else 'info',
-        })
+        }
+        if title is not None:
+            notification['title'] = title
+        manager_users._bus_send('simple_notification', notification)
 
 
 class SafeDict(defaultdict):

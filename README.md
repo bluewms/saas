@@ -2,6 +2,8 @@
 
 运行管理服务前设置服务器环境变量 `SAAS_MASTER_DATABASE` 为实际管理数据库名。客户登录插件需在令牌验证请求中发送其服务器端保存的 `auth_quick.build` 引用。完整 SaaS 仍需要对应的 Odoo 20 合同、邮箱验证和客户插件，管理端回归通过不能替代完整开通与恢复演练。
 
+本地开发使用 [SaaS 双实例环境](docs/dev-environment.md)，分别登录管理端和客户库。
+
 # SaaS addons
 
 System to sale and manage odoo databases.

@@ -1,0 +1,97 @@
+name: saas-dev
+
+x-postgres: &postgres
+  image: ${SAAS_POSTGRES_IMAGE:-postgres@sha256:a80d0c1b119cf3d6bab27f72782f16e47ab8534ced937fa813ec2ab26e1fd81e}
+  pull_policy: never
+  healthcheck:
+    test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U odoo']
+    interval: 3s
+    timeout: 3s
+    retries: 20
+
+x-odoo: &odoo
+  image: ${SAAS_ODOO_IMAGE:-odoo@sha256:cdd83e8359b3e8c357895d476396c05021fed9975bf420f353bab25fcaed1533}
+  pull_policy: never
+  healthcheck:
+    test: [CMD, python3, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8069/web/login', timeout=5)"]
+    interval: 10s
+    timeout: 6s
+    retries: 12
+    start_period: 20s
+
+x-odoo-environment: &odoo-environment
+  USER: odoo
+  ODOO_HTTP_INTERFACE: 0.0.0.0
+  ODOO_LIST_DB: "False"
+
+services:
+  master-db:
+    <<: *postgres
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_DB: saas_master
+      POSTGRES_PASSWORD: ${SAAS_MASTER_DB_PASSWORD:?Run scripts/saas-dev.sh init}
+    volumes:
+      - master-postgres:/var/lib/postgresql/data
+
+  client-db:
+    <<: *postgres
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_DB: saas_client
+      POSTGRES_PASSWORD: ${SAAS_CLIENT_DB_PASSWORD:?Run scripts/saas-dev.sh init}
+    volumes:
+      - client-postgres:/var/lib/postgresql/data
+
+  master:
+    <<: *odoo
+    depends_on:
+      master-db:
+        condition: service_healthy
+    environment:
+      <<: *odoo-environment
+      HOST: master-db
+      PASSWORD: ${SAAS_MASTER_DB_PASSWORD:?Run scripts/saas-dev.sh init}
+      ODOO_ADMIN_PASSWD: ${SAAS_MASTER_ADMIN_PASSWD:?Run scripts/saas-dev.sh init}
+      PGDATABASE: saas_master
+      ODOO_DBFILTER: ^saas_master$$
+      ODOO_ADDONS_PATH: /mnt/extra-addons,/mnt/queue-addons
+      ODOO_SERVER_WIDE_MODULES: base,web,host2db,queue_job
+      ODOO_QUEUE_JOB_CHANNELS: root:1
+      PYTHONPATH: /mnt/python-deps
+      SAAS_MASTER_DATABASE: saas_master
+    ports:
+      - "127.0.0.1:${SAAS_DEV_MASTER_PORT:-8072}:8069"
+    volumes:
+      - .:/mnt/extra-addons:ro
+      - ${SAAS_QUEUE_ADDONS:-../oca-queue}:/mnt/queue-addons:ro
+      - ./.saas-dev/python-deps:/mnt/python-deps:ro
+      - master-odoo:/var/lib/odoo
+
+  client:
+    <<: *odoo
+    depends_on:
+      client-db:
+        condition: service_healthy
+    environment:
+      <<: *odoo-environment
+      HOST: client-db
+      PASSWORD: ${SAAS_CLIENT_DB_PASSWORD:?Run scripts/saas-dev.sh init}
+      ODOO_ADMIN_PASSWD: ${SAAS_CLIENT_ADMIN_PASSWD:?Run scripts/saas-dev.sh init}
+      PGDATABASE: saas_client
+      ODOO_DBFILTER: ^saas_client$$
+      ODOO_ADDONS_PATH: /mnt/extra-addons,/mnt/access-addons,/mnt/oca-web
+      ODOO_SERVER_WIDE_MODULES: base,web,host2db,saas_cluster_simple
+    ports:
+      - "127.0.0.1:${SAAS_DEV_CLIENT_PORT:-8073}:8069"
+    volumes:
+      - .:/mnt/extra-addons:ro
+      - ${SAAS_ACCESS_ADDONS:-../access-addons}:/mnt/access-addons:ro
+      - ${SAAS_WEB_ADDONS:-../oca-web}:/mnt/oca-web:ro
+      - client-odoo:/var/lib/odoo
+
+volumes:
+  master-postgres:
+  client-postgres:
+  master-odoo:
+  client-odoo:

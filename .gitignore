@@ -60,3 +60,6 @@ docs/_build/
 
 # nvim mergtool
 *.orig
+
+# Local SaaS development credentials and dependencies
+/.saas-dev/
