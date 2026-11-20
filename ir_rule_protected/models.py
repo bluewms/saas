@@ -1,39 +1,38 @@
-from odoo import SUPERUSER_ID, exceptions, fields, models
-from odoo.tools.translate import _
+# License MIT (https://opensource.org/licenses/MIT).
+from odoo import api, fields, models
+from odoo.exceptions import AccessError
 
-MODULE_NAME = "ir_rule_protected"
 
+class IrAccess(models.Model):
+    _inherit = 'ir.access'
 
-class IRRule(models.Model):
-    _inherit = "ir.rule"
+    protected = fields.Boolean(help='Only the superuser can edit a protected access rule.')
 
-    protected = fields.Boolean(
-        "Protected", help="Make rule editable only for superuser"
-    )
+    def _check_protected(self):
+        if not self.env.su and any(self.sudo().mapped('protected')):
+            raise AccessError(self.env._('You cannot change a protected access rule.'))
 
-    def check_restricted(self):
-        if self.env.user.id == SUPERUSER_ID:
-            return
-        for r in self:
-            if r.protected:
-                raise exceptions.UserError(
-                    _("The Rule is protected. You don't have access for this operation")
-                )
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su and any(vals.get('protected') for vals in vals_list):
+            raise AccessError(self.env._('Only the superuser can protect an access rule.'))
+        return super().create(vals_list)
 
     def write(self, vals):
-        self.check_restricted()
-        return super(IRRule, self).write(vals)
+        if not self.env.su and vals.get('protected'):
+            raise AccessError(self.env._('Only the superuser can protect an access rule.'))
+        self._check_protected()
+        return super().write(vals)
 
     def unlink(self):
-        self.check_restricted()
-        return super(IRRule, self).unlink()
+        self._check_protected()
+        return super().unlink()
 
 
-class Module(models.Model):
-    _inherit = "ir.module.module"
+class IrModuleModule(models.Model):
+    _inherit = 'ir.module.module'
 
     def button_uninstall(self):
-        for r in self:
-            if r.name == MODULE_NAME and self.env.uid != SUPERUSER_ID:
-                raise exceptions.UserError(_("Only admin can uninstall the module"))
-        return super(Module, self).button_uninstall()
+        if not self.env.su and 'ir_rule_protected' in self.mapped('name'):
+            raise AccessError(self.env._('Only the superuser can uninstall protected access rules.'))
+        return super().button_uninstall()

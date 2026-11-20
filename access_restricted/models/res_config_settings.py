@@ -1,59 +1,32 @@
-from odoo import SUPERUSER_ID, api, models
-from odoo.tools import ustr
-from odoo.tools.translate import _
+from odoo import api, models
 
 
 class ResConfigSettings(models.TransientModel):
-    _inherit = "res.config.settings"
+    _inherit = 'res.config.settings'
+
+    def _may_configure_implied_groups(self):
+        return self.env.su or self.env.user.has_group(
+            'access_restricted.group_allow_add_implied_from_settings'
+        )
 
     @api.model
     def _get_classified_fields(self, fnames=None):
-        uid = self.env.uid
-        classified = super(ResConfigSettings, self)._get_classified_fields(fnames)
-        config = self.env.context.get("config")
-        is_execute_stage = config and isinstance(config, models.Model)
-        if uid == SUPERUSER_ID or is_execute_stage:
-            return classified
-
-        group = []
-        ResUsers = self.env["res.users"]
-        for name, groups, implied_group in classified["group"]:
-            if ResUsers.search_count(
-                [("id", "=", uid), ("groups_id", "in", [implied_group.id])]
-            ) or ResUsers.has_group(
-                "access_restricted.group_allow_add_implied_from_settings"
-            ):
-                group.append((name, groups, implied_group))
-        classified["group"] = group
+        classified = super()._get_classified_fields(fnames)
+        if not self._may_configure_implied_groups():
+            allowed_groups = self.env.user.all_group_ids
+            classified['group'] = [
+                entry for entry in classified['group'] if entry[2] <= allowed_groups
+            ]
         return classified
 
     @api.model
-    def fields_get(self, allfields=None, **kwargs):
-        uid = self.env.uid
-        fields = super(ResConfigSettings, self).fields_get(allfields, **kwargs)
+    def fields_get(self, allfields=None, attributes=None):
+        result = super().fields_get(allfields, attributes)
+        if self._may_configure_implied_groups() or (attributes is not None and 'readonly' not in attributes):
+            return result
 
-        if uid == SUPERUSER_ID:
-            return fields
-
-        for name in fields:
-            if not name.startswith("group_"):
-                continue
-            f = self._fields[name]
-            ResUsers = self.env["res.users"]
-            if ResUsers.has_group(f.implied_group) or ResUsers.has_group(
-                "access_restricted.group_allow_add_implied_from_settings"
-            ):
-                continue
-
-            fields[name].update(
-                readonly=True,
-                help=ustr(fields[name].get("help", ""))
-                + _(
-                    "\n\nYou don't have access to change this settings, because you administration rights are restricted"
-                ),
-            )
-        return fields
-
-    def execute(self):
-        res = super(ResConfigSettings, self.with_context({"config": self})).execute()
-        return res
+        allowed_groups = self.env.user.all_group_ids
+        for name, info in result.items():
+            if name.startswith('group_') and not self.env.ref(self._fields[name].implied_group) <= allowed_groups:
+                info['readonly'] = True
+        return result
