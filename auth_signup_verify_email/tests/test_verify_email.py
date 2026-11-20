@@ -1,70 +1,47 @@
 # Copyright 2016 Jairo Llopis <jairo.llopis@tecnativa.com>
-# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from lxml.html import document_fromstring
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from unittest.mock import patch
-
+from odoo.exceptions import UserError
 from odoo.tests.common import HttpCase
 from odoo.tools.misc import mute_logger
-
-from odoo.addons.mail.models import mail_template
 
 
 class UICase(HttpCase):
     def setUp(self):
         super().setUp()
-        if "website" in self.env:
-            # Enable public signup in website if it is installed; otherwise
-            # tests here would fail
-            current_website = self.env["website"].get_current_website()
-            current_website.auth_signup_uninvited = "b2c"
-        self.env["ir.config_parameter"].set_param("auth_signup.invitation_scope", "b2c")
-        self.data = {
-            "csrf_token": self.csrf_token(),
-            "name": "Somebody",
-        }
-
-    def html_doc(self, url="/web/signup", data=None, timeout=30):
-        """Get an HTML LXML document."""
-        with patch(mail_template.__name__ + ".MailTemplate.send_mail"):
-            resp = self.url_open(url, data=data, timeout=timeout)
-        return document_fromstring(resp.content)
-
-    def csrf_token(self):
-        """Get a valid CSRF token."""
-        doc = self.html_doc()
-        return doc.xpath("//input[@name='csrf_token']")[0].get("value")
+        if 'auth_signup_uninvited' in self.env['website']._fields:
+            self.env.ref('base.default_website').auth_signup_uninvited = 'b2c'
+        self.env['ir.config_parameter'].set_str('auth_signup.invitation_scope', 'b2c')
+        page = document_fromstring(self.url_open('/web/signup').content)
+        self.data = {'csrf_token': page.xpath("//input[@name='csrf_token']/@value")[0], 'name': 'Somebody'}
 
     def test_bad_email(self):
-        """Test rejection of bad emails."""
-        self.data["login"] = "bad email"
-        doc = self.html_doc(data=self.data)
-        self.assertTrue(doc.xpath('//p[@class="alert alert-danger"]'))
+        response = self.url_open('/web/signup', data={**self.data, 'login': 'bad email'})
+        self.assertIn('Please enter a valid email address', response.text)
 
+    @mute_logger('odoo.http')
     def test_failed_recaptcha(self):
-        """Test rejection of failed reCaptcha."""
-        self.data["login"] = "contributors@odoo-community.org"
-        # Patched on the registry class: the captcha modules override this
-        # method too, and patching the one in base would leave their override
-        # in front of it.
-        with patch.object(
-            type(self.env["ir.http"]),
-            "_verify_request_recaptcha_token",
-            return_value=False,
-        ):
-            doc = self.html_doc(data=self.data)
-        self.assertTrue(doc.xpath('//p[@class="alert alert-danger"]'))
-        self.assertFalse(
-            self.env["res.users"].sudo().search([("login", "=", self.data["login"])])
-        )
+        login = 'test-verification@odoo.com'
+        with patch.object(type(self.env['ir.http']), '_verify_request_recaptcha_token', side_effect=UserError('CAPTCHA test')):
+            response = self.url_open('/web/signup', data={**self.data, 'login': login})
+        self.assertEqual(response.status_code, 422)
+        self.assertFalse(self.env['res.users'].search([('login', '=', login)]))
 
-    @mute_logger("odoo.addons.auth_signup_verify_email.controllers.main")
-    def test_good_email(self):
-        """Test acceptance of good emails."""
-        self.data["login"] = "contributors@odoo-community.org"
-        doc = self.html_doc(data=self.data)
-        self.assertTrue(doc.xpath('//p[@class="alert alert-success"]'))
+    def test_signup_password_cannot_bypass_email_verification(self):
+        login = 'test-verification@odoo.com'
+        with (
+            patch('odoo.addons.auth_signup_verify_email.controllers.main.validate_email',
+                  return_value=SimpleNamespace(normalized=login)),
+            patch.object(type(self.env['res.users']), 'reset_password') as reset,
+        ):
+            response = self.url_open('/web/signup', data={
+                **self.data, 'login': login, 'password': 'submitted-password',
+                'confirm_password': 'submitted-password',
+            })
+        self.assertIn('Check your email to activate your account', response.text)
+        reset.assert_called_once_with(login)

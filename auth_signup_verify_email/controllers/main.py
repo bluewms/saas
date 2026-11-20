@@ -2,79 +2,61 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 import logging
+import secrets
 
-from email_validator import EmailSyntaxError, EmailUndeliverableError, validate_email
+from email_validator import EmailNotValidError, validate_email
+from werkzeug.exceptions import NotFound
 
-from odoo import _
 from odoo.exceptions import UserError
 from odoo.http import request, route
 
 from odoo.addons.auth_signup.controllers.main import AuthSignupHome
+from odoo.addons.auth_signup.models.res_users import SignupError
 
 _logger = logging.getLogger(__name__)
 
 
 class SignupVerifyEmail(AuthSignupHome):
     @route()
-    def web_auth_signup(self, *args, **kw):
-        if request.params.get("login") and not request.params.get("password"):
+    def web_auth_signup(self, *args, **kwargs):
+        if (
+            request.httprequest.method == "POST"
+            and not request.params.get("token")
+            and not request.session.get("auth_signup_token")
+        ):
             return self.passwordless_signup()
-        return super().web_auth_signup(*args, **kw)
+        return super().web_auth_signup(*args, **kwargs)
+
+    def _prepare_passwordless_signup_values(self, qcontext):
+        login = validate_email(qcontext.get("login") or "").normalized
+        name = (qcontext.get("name") or "").strip()
+        if not name:
+            raise UserError(request.env._("Please enter your name."))
+        return {"login": login, "email": login, "name": name, "password": secrets.token_urlsafe(32)}
 
     def passwordless_signup(self):
-        values = request.params
         qcontext = self.get_auth_signup_qcontext()
-
-        # Check good format of e-mail
-        try:
-            if not request.env["ir.http"]._verify_request_recaptcha_token("signup"):
-                raise UserError(_("Suspicious activity detected by Google reCaptcha."))
-            validate_email(values.get("login", ""))
-        except EmailSyntaxError as error:
-            qcontext["error"] = getattr(
-                error,
-                "message",
-                _("That does not seem to be an email address."),
-            )
-            return request.render("auth_signup.signup", qcontext)
-        except EmailUndeliverableError as error:
-            qcontext["error"] = str(error)
-            return request.render("auth_signup.signup", qcontext)
-        except Exception as error:
-            qcontext["error"] = str(error)
-            return request.render("auth_signup.signup", qcontext)
-        if not values.get("email"):
-            values["email"] = values.get("login")
-
-        # remove values that could raise "Invalid field '*' on model 'res.users'"
-        values.pop("redirect", "")
-        values.pop("token", "")
-
-        # Remove password
-        values["password"] = ""
-        sudo_users = request.env["res.users"].with_context(create_user=True).sudo()
+        if not qcontext.get("signup_enabled"):
+            raise NotFound()
 
         try:
-            with request.cr.savepoint():
-                sudo_users.signup(values, qcontext.get("token"))
-                sudo_users.reset_password(values.get("login"))
-        except Exception as error:
-            # Duplicate key or wrong SMTP settings, probably
-            _logger.exception(error)
-            if (
-                request.env["res.users"]
-                .sudo()
-                .search([("login", "=", qcontext.get("login"))])
-            ):
-                qcontext["error"] = _(
-                    "Another user is already registered using this email" " address."
-                )
-            else:
-                # Agnostic message for security
-                qcontext["error"] = _(
-                    "Something went wrong, please try again later or" " contact us."
-                )
+            values = self._prepare_passwordless_signup_values(qcontext)
+        except EmailNotValidError:
+            qcontext["error"] = request.env._("Please enter a valid email address.")
+            return request.render("auth_signup.signup", qcontext)
+        except UserError as error:
+            qcontext["error"] = error.args[0]
             return request.render("auth_signup.signup", qcontext)
 
-        qcontext["message"] = _("Check your email to activate your account!")
+        users = request.env["res.users"].sudo().with_context(create_user=True)
+        try:
+            with request.env.cr.savepoint():
+                login, _password = users.signup(values)
+                users.reset_password(login)
+        except (SignupError, UserError):
+            _logger.warning("Passwordless signup did not complete.")
+            qcontext["error"] = request.env._("Could not send a signup email. Please try again later.")
+            return request.render("auth_signup.signup", qcontext)
+
+        qcontext["message"] = request.env._("Check your email to activate your account!")
         return request.render("auth_signup.reset_password", qcontext)
