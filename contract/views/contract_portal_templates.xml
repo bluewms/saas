@@ -32,7 +32,7 @@
         customize_show="True"
         priority="30"
     >
-        <div id="portal_common_category" position="inside">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
             <t t-call="portal.portal_docs_entry">
                 <t
                     t-set="icon"
@@ -42,7 +42,7 @@
                 <t t-set="url" t-value="'/my/contracts'" />
                 <t t-set="placeholder_count" t-value="'contract_count'" />
             </t>
-        </div>
+        </xpath>
     </template>
     <template id="portal_my_contracts" name="My Contracts">
         <t t-call="portal.portal_layout">
