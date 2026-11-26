@@ -13,7 +13,7 @@
                 <setting id="database_expiration_warning_delay_setting" string="Database expiration warning delay (default)">
                     <field name="database_expiration_warning_delay" class="fw-bold"/>
                 </setting>
-                <setting id="number_of_days_for_trial_setting" string="Number of days for trial (default)">
+                <setting id="number_of_days_for_trial_setting" string="Default lifetime for manually created databases (days)">
                     <field name="number_of_days_for_trial" class="fw-bold"/>
                 </setting>
             </xpath>

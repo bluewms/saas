@@ -37,12 +37,18 @@ class SaasDb(models.Model):
         records = super(SaasDb, self).create(vals_list)
         DomainName = self.env["saas.domain.name"]
         for record in records:
-            if record.domain_name_id:
+            if record.domain_name_id and record.state == 'done':
                 DomainName.with_delay()._run_domain_operations(
                     record.operator_id.id, [["map", record.domain_name_id.name, record.name]]
                 )
 
         return records
+
+    def _finalize_build(self):
+        self.ensure_one()
+        if self.type == 'build' and self.state == 'creating' and self.domain_name_id:
+            self.operator_id.map_domain(self.domain_name_id.name, self.name)
+        return super()._finalize_build()
 
     def write(self, vals):
         domain_name_ids_before = {}

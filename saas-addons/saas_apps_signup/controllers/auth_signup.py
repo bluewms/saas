@@ -29,6 +29,10 @@ class Main(SignupVerifyEmail):
     def _prepare_passwordless_signup_values(self, qcontext):
         values = super()._prepare_passwordless_signup_values(qcontext)
         values.update({key: qcontext[key] for key in EXTRA_SIGN_UP_REQUEST_PARAMS if key in qcontext})
+        if qcontext.get('operator_id'):
+            operator = request.env['saas.operator'].sudo().browse(int(qcontext['operator_id']))
+            slot = request.env['saas.db'].sudo()._get_website_build_slot(operator, values.get('database_name'))
+            values['database_name'] = slot['database_name']
         return values
 
     def get_auth_signup_qcontext(self):
@@ -103,20 +107,3 @@ class Main(SignupVerifyEmail):
             if country.code
         ]
         return d
-
-    def passwordless_signup(self):
-        values = request.params
-        qcontext = self.get_auth_signup_qcontext()
-
-        database_name = values.get("database_name")
-        if database_name:
-            db_record = request.env['saas.db'].sudo().search([('name', '=', database_name)], limit=1)
-            if db_record:
-                qcontext["error"] = "Database %s already exist" % (database_name,)
-                return request.render("auth_signup.signup", qcontext)
-
-        try:
-            return super(Main, self).passwordless_signup()
-        except OperatorNotAvailable as e:
-            qcontext["error"] = str(e)
-            return request.render("auth_signup.signup", qcontext)

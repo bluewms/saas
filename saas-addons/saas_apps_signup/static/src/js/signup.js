@@ -23,8 +23,11 @@ function setup() {
     const databaseName = node("database_name");
     if (companyName && databaseName) {
         companyName.addEventListener("change", () => {
-            databaseName.value = companyName.value.toLowerCase().replace(/[^a-z0-9_-]/gi, "");
-            databaseName.dispatchEvent(new Event("change"));
+            if (!databaseName.value) {
+                databaseName.value = companyName.value.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 63).replace(/-+$/, "");
+                databaseName.dispatchEvent(new Event("change"));
+            }
         });
     }
 

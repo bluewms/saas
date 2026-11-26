@@ -8,8 +8,9 @@
 
             <form t-attf-action="/my/builds/create?{{ query }}" method="POST">
                 <div class="mb-3">
-                    <label for="database_name" class="col-form-label">Database name</label>
+                    <label for="database_name" class="col-form-label">Workspace subdomain</label>
                     <input type="text" class="form-control" name="database_name" id="database_name" t-att-value="database_name"
+                           maxlength="63" autocapitalize="off" required="required"
                            onfocus="var el = document.getElementById('database_create_error'); if (el) { el.style.display = 'none'; }"/>
 
                     <div t-if="error" id="database_create_error" class="alert alert-danger text-center" role="alert">
@@ -19,7 +20,7 @@
                 </div>
                 <input type="hidden" name="operator_id" t-att-value="operator_id"/>
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                <button type="submit" id="send_form" class="btn btn-primary">Create database</button>
+                <button type="submit" id="send_form" class="btn btn-primary">Confirm subdomain</button>
             </form>
 
         </t>

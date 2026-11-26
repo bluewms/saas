@@ -1,9 +1,16 @@
 # Copyright 2020 Eugene Molotov <https://it-projects.info/team/em230418>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import api, models, fields
-from odoo.exceptions import ValidationError
 import logging
+from urllib.parse import urlsplit
+
+from psycopg2.errors import UniqueViolation
+
+from odoo import api, fields, models
+from odoo.exceptions import UserError, ValidationError
+
+from odoo.addons.host2db.override import normalize_domain
+from odoo.addons.saas_cluster_simple.main import validate_database_name
 
 _logger = logging.getLogger(__name__)
 
@@ -33,6 +40,45 @@ class SaasDb(models.Model):
                 raise ValidationError(self.env._('You cannot create more than one draft database.'))
 
         return super(SaasDb, self).create(vals_list)
+
+    @api.model
+    def _get_website_build_slot(self, operator, name):
+        operator.ensure_one()
+        try:
+            slug = normalize_domain(name)
+            if '.' in slug:
+                raise ValueError()
+            validate_database_name(slug)
+        except (ValueError, UserError):
+            raise ValidationError(self.env._('Enter a subdomain using letters, numbers, and hyphens.')) from None
+
+        if not operator.db_url_template:
+            raise ValidationError(self.env._('This offer has no customer domain configured.'))
+        url = operator.db_url_template.format(db_name=slug)
+        host = urlsplit(url).hostname
+        if not host or not host.startswith(f'{slug}.'):
+            raise ValidationError(self.env._('This offer has no customer domain configured.'))
+        if (self.with_context(active_test=False).search_count([
+            ('name', '=', slug), ('operator_id', '=', operator.id),
+        ], limit=1) or self.env['saas.domain.name'].search_count([('name', '=', host)], limit=1)):
+            raise ValidationError(self.env._('This subdomain is already in use.'))
+        return {'database_name': slug, 'domain': url, 'host': host}
+
+    @api.model
+    def _create_website_build_draft(self, user, operator, name):
+        self._check_management_access('create')
+        slot = self._get_website_build_slot(operator, name)
+        try:
+            with self.env.cr.savepoint():
+                domain = self.env['saas.domain.name'].create({'name': slot['host'], 'operator_id': operator.id})
+                return self.create({
+                    'name': slot['database_name'], 'operator_id': operator.id,
+                    'admin_user': user.id, 'domain_name_id': domain.id,
+                })
+        except UniqueViolation as error:
+            if error.diag.constraint_name not in ('saas_domain_name_name_unique', 'saas_db_name_operator_unique'):
+                raise
+            raise ValidationError(self.env._('This subdomain is already in use.')) from None
 
     def read_values_from_build(self):
         vals = super(SaasDb, self).read_values_from_build()

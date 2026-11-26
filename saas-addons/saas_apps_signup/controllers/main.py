@@ -7,11 +7,10 @@ from urllib.parse import parse_qs, urlsplit
 import werkzeug
 from werkzeug.urls import url_encode
 
-from odoo import SUPERUSER_ID
+from odoo import SUPERUSER_ID, fields
 from odoo.exceptions import AccessError, MissingError, UserError, ValidationError
 from odoo.http import Controller, request, route
 from odoo.addons.auth_quick_master.tools.build_redirection import build_confirmation
-from odoo.addons.saas_cluster_simple.main import validate_database_name
 from odoo.addons.saas_portal.controllers.portal import CustomerPortal
 
 from ..exceptions import OperatorNotAvailable
@@ -49,26 +48,14 @@ class Main(Controller):
 
     @route("/saas_apps_signup/is_database_slot_available", auth="public", type="jsonrpc", methods=['POST'])
     def is_available(self, database_name, operator_id, **kw):
-        if not isinstance(database_name, str):
-            return {'answer': 'Invalid database name'}
-        database_name = database_name.lower().strip()
-        try:
-            validate_database_name(database_name)
-        except UserError:
-            return {'answer': 'Invalid database name'}
-        if database_name != request.env['ir.http']._slugify(database_name):
-            return {'answer': 'Invalid database name'}
         operator = self._available_operator(operator_id)
-        if not operator or not operator.db_url_template:
-            return {'answer': 'No ready operator is available'}
-        if request.env['saas.db'].sudo().search_count([
-            ('name', '=', database_name), ('operator_id', '=', operator.id),
-        ]):
-            return {'answer': 'Database already exists'}
-        return {
-            'domain': operator.db_url_template.format(db_name=database_name),
-            'database_name': database_name,
-        }
+        if not operator:
+            return {'answer': request.env._('No ready operator is available.')}
+        try:
+            slot = request.env['saas.db'].sudo()._get_website_build_slot(operator, database_name)
+        except ValidationError as error:
+            return {'answer': str(error)}
+        return {'domain': slot['domain'], 'database_name': slot['database_name']}
 
     @route("/my/builds/create", auth="user", type="http", website=True, methods=['GET', 'POST'])
     def portal_build_selector(self, database_name=None, redirect=None, operator_id=None, **kw):
@@ -76,9 +63,9 @@ class Main(Controller):
         qcontext = {'error': False, 'operator_id': False}
         if request.httprequest.method == 'POST':
             try:
-                result = self.is_available(database_name, operator_id)
-                if 'answer' in result:
-                    raise ValidationError(result['answer'])
+                operator = self._available_operator(operator_id)
+                if not operator:
+                    raise OperatorNotAvailable(request.env._('No ready operator is available.'))
                 user = request.env.user
                 user.lock_for_update(allow_referencing=True)
                 Build = request.env['saas.db'].sudo()
@@ -87,11 +74,7 @@ class Main(Controller):
                 ]):
                     raise ValidationError(request.env._('You already have a draft database.'))
                 with request.env.cr.savepoint():
-                    Build.create({
-                        'name': result['database_name'],
-                        'operator_id': int(operator_id),
-                        'admin_user': user.id,
-                    })
+                    Build._create_website_build_draft(user, operator, database_name)
                 return request.redirect(redirect)
             except (UserError, ValueError, TypeError) as error:
                 qcontext['error'] = str(error)
@@ -161,6 +144,9 @@ class CustomerPortal(CustomerPortal):
             return request.redirect('/my/builds')
         if not build.contract_id:
             return request.not_found()
+        contract = build.contract_id
+        if contract.trial_expiration_date and contract.trial_expiration_date > fields.Datetime.now():
+            return request.redirect('/my/build/{}'.format(build.id))
         if request.httprequest.method == 'GET':
             return build_confirmation(
                 request.httprequest.path, {}, request.csrf_token(),
@@ -168,7 +154,6 @@ class CustomerPortal(CustomerPortal):
             )
         if not build.try_lock_for_update(allow_referencing=True):
             return request.redirect('/my/build/{}'.format(build.id))
-        contract = build.contract_id
         if not contract.try_lock_for_update(allow_referencing=True):
             return request.redirect('/my/build/{}'.format(build.id))
         invoices = contract._get_related_invoices().filtered(

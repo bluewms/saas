@@ -1,9 +1,13 @@
 # Copyright 2020 Eugene Molotov <https://it-projects.info/team/em230418>
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import api, models, SUPERUSER_ID
-from odoo.exceptions import ValidationError
 import logging
+
+from dateutil.relativedelta import relativedelta
+
+from odoo import SUPERUSER_ID, api, fields, models
+from odoo.exceptions import ValidationError
+
 from ..exceptions import OperatorNotAvailable
 
 _logger = logging.getLogger(__name__)
@@ -43,7 +47,7 @@ class Contract(models.Model):
         if max_users_limit < 1:
             raise ValidationError(self.env._('The user limit must be a positive whole number.'))
         installing_modules = sorted({name.strip() for name in (installing_modules or []) if name.strip()})
-        if installing_modules and saas_template_id:
+        if bool(installing_modules) == bool(saas_template_id):
             raise ValidationError(self.env._('Choose apps or one package.'))
         apps = self.env['saas.app'].search([('name', 'in', installing_modules), ('allow_to_sell', '=', True)])
         if set(apps.mapped('name')) != set(installing_modules):
@@ -67,7 +71,7 @@ class Contract(models.Model):
         else:
             raise ValidationError(self.env._('Choose a monthly or yearly subscription.'))
 
-        expiration_date = self.env["saas.db"]._fields["expiration_date"].default(build)
+        expiration_date = fields.Datetime.now() + relativedelta(months=1)
         product_users = self.env.ref("saas_product.product_users_{}".format(subscription_period_suffix))
 
         contract_vals = {
@@ -76,6 +80,7 @@ class Contract(models.Model):
             "partner_id": partner.id,
             "line_recurrence": False,
             "trial_expiration_date": expiration_date,
+            "date_start": fields.Date.to_date(expiration_date),
             "recurring_rule_type": subscription_period + "ly",
             "recurring_interval": 1,
         }
@@ -119,6 +124,13 @@ class Contract(models.Model):
             "max_users_limit": max_users_limit,
             "expiration_date": expiration_date,
         }).create(contract_vals)
+
+    @api.model
+    def _get_contracts_to_invoice_domain(self, date_ref=None):
+        return super()._get_contracts_to_invoice_domain(date_ref) & (
+            fields.Domain('trial_expiration_date', '=', False)
+            | fields.Domain('trial_expiration_date', '<=', fields.Datetime.now())
+        )
 
     def _create_build(self, build_vals):
         self.env['saas.db']._check_management_access()
@@ -180,7 +192,6 @@ class Contract(models.Model):
 
             template_operator.create_db(
                 key_values={"installing_modules": installing_modules_var},
-                with_delay=False,
                 draft_build_id=build.id
             )
 

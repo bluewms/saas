@@ -80,11 +80,10 @@ class ResUsers(models.Model):
             })
 
         if database_name or cart:
-            build = self.env['saas.db'].create({
-                'name': database_name,
-                'operator_id': int(options['operator_id']),
-                'admin_user': self.id,
-            })
+            operator = self.env['saas.operator'].browse(int(options['operator_id'])).exists()
+            if not operator:
+                raise ValidationError(self.env._('The selected operator is no longer available.'))
+            build = self.env['saas.db']._create_website_build_draft(self, operator, database_name)
             if cart:
                 cart.write({'partner_id': self.partner_id.id, 'build_id': build.id})
             else:
